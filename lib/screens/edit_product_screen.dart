@@ -22,13 +22,13 @@ class _EditProductScreenState extends State<EditProductScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
   final _generalDescController = TextEditingController();
   final _benefitsController = TextEditingController();
   final _suitableForController = TextEditingController();
   
   final List<XFile> _newImageFiles = [];
   List<String> _existingImageUrls = [];
+  List<ProductVariation> _variations = [];
   bool _isLoading = false;
   bool _isAvailable = true;
   final supabase = Supabase.instance.client;
@@ -42,11 +42,14 @@ class _EditProductScreenState extends State<EditProductScreen>
     super.initState();
     
     _nameController.text = widget.product.name;
-    _priceController.text = widget.product.price.toString();
     _generalDescController.text = widget.product.descriptionGeneral;
     _benefitsController.text = widget.product.keyBenefits;
     _suitableForController.text = widget.product.suitableFor;
     _existingImageUrls = List.from(widget.product.imageUrls);
+    _variations = List.from(widget.product.availableVariations);
+    if (_variations.isEmpty) {
+      _variations.add(ProductVariation(size: 'عادي', price: widget.product.price));
+    }
     _isAvailable = widget.product.isAvailable;
     
     _animationController = AnimationController(
@@ -73,7 +76,6 @@ class _EditProductScreenState extends State<EditProductScreen>
   void dispose() {
     _animationController.dispose();
     _nameController.dispose();
-    _priceController.dispose();
     _generalDescController.dispose();
     _benefitsController.dispose();
     _suitableForController.dispose();
@@ -99,8 +101,35 @@ class _EditProductScreenState extends State<EditProductScreen>
     });
   }
 
+  void _addVariation() {
+    setState(() {
+      _variations.add(ProductVariation(size: '', price: 0.0));
+    });
+  }
+
+  void _removeVariation(int index) {
+    if (_variations.length > 1) {
+      setState(() {
+        _variations.removeAt(index);
+      });
+    } else {
+      CustomToast.showWarning('يجب الاحتفاظ بحجم واحد على الأقل');
+    }
+  }
+
+  void _updateVariation(int index, String size, double price) {
+    setState(() {
+      _variations[index] = ProductVariation(size: size, price: price);
+    });
+  }
+
   Future<void> _updateProduct() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_variations.any((v) => v.size.isEmpty || v.price <= 0)) {
+      CustomToast.showWarning('يرجى التأكد من إدخال جميع الأحجام والأسعار بشكل صحيح');
       return;
     }
 
@@ -124,9 +153,15 @@ class _EditProductScreenState extends State<EditProductScreen>
         allImageUrls.addAll(newImageUrls);
       }
 
+      final variationsJson = _variations.map((v) => {
+        'size': v.size,
+        'price': v.price,
+      }).toList();
+
       await supabase.from('products').update({
         'name': _nameController.text,
-        'price': double.parse(_priceController.text),
+        'price': _variations.first.price,
+        'variations': variationsJson,
         'image_urls': allImageUrls,
         'description_general': _generalDescController.text,
         'key_benefits': _benefitsController.text,
@@ -151,7 +186,7 @@ class _EditProductScreenState extends State<EditProductScreen>
           _isLoading = false;
         });
       }
-        }
+    }
   }
 
   Widget _buildFormField({
@@ -421,6 +456,128 @@ class _EditProductScreenState extends State<EditProductScreen>
     );
   }
 
+  Widget _buildVariationsSection() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    return Card(
+      elevation: 8,
+      color: themeProvider.cardColor.withValues(alpha: 0.95),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.straighten, color: Color(0xFFE57F84)),
+                const SizedBox(width: 10),
+                Text(
+                  'الأحجام والأسعار',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: themeProvider.textColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _variations.length,
+              itemBuilder: (context, index) {
+                final variation = _variations[index];
+                final sizeController = TextEditingController(text: variation.size);
+                final priceController = TextEditingController(text: variation.price.toString());
+                
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 15),
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: themeProvider.surfaceColor,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: const Color(0xFFE57F84).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: TextFormField(
+                          controller: sizeController,
+                          decoration: InputDecoration(
+                            labelText: 'الحجم',
+                            hintText: 'مثل: 200مل',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          onChanged: (value) => _updateVariation(index, value, variation.price),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
+                        child: TextFormField(
+                          controller: priceController,
+                          decoration: InputDecoration(
+                            labelText: 'السعر',
+                            hintText: '0.00',
+                            suffixText: 'جنيه',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            final price = double.tryParse(value) ?? 0.0;
+                            _updateVariation(index, variation.size, price);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      IconButton(
+                        onPressed: () => _removeVariation(index),
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.red.withValues(alpha: 0.1),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            
+            const SizedBox(height: 15),
+            
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _addVariation,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFE57F84),
+                  side: const BorderSide(color: Color(0xFFE57F84)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text('إضافة حجم جديد'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     CustomToast.setContext(context);
@@ -505,20 +662,7 @@ class _EditProductScreenState extends State<EditProductScreen>
 
                             const SizedBox(height: 20),
 
-                            _buildFormField(
-                              controller: _priceController,
-                              label: 'السعر (جنيه مصري)',
-                              hint: 'أدخل السعر بالجنيه المصري',
-                              icon: Icons.attach_money,
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value!.isEmpty) return 'يرجى إدخال السعر';
-                                if (double.tryParse(value) == null) {
-                                  return 'يرجى إدخال سعر صحيح';
-                                }
-                                return null;
-                              },
-                            ),
+                            _buildVariationsSection(),
 
                             const SizedBox(height: 20),
 

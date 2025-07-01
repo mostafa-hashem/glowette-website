@@ -365,23 +365,13 @@ class _ProductCardState extends State<ProductCard>
           const SizedBox(height: 4),
           
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Expanded(
-                child: Text(
-                  widget.product.priceRange,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: themeProvider.primaryColor,
-                  ),
-                ),
-              ),
               _buildRatingStars(themeProvider),
             ],
           ),
           
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           
           Flexible(
             child: Text(
