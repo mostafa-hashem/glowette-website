@@ -31,7 +31,7 @@ class ThemeProvider extends ChangeNotifier {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 8,
         shadowColor: const Color(0xFFE57F84).withValues(alpha: 0.2),
@@ -103,7 +103,7 @@ class ThemeProvider extends ChangeNotifier {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: const Color(0xFF2D2D2D),
         elevation: 8,
         shadowColor: Colors.black.withValues(alpha: 0.3),
@@ -167,22 +167,26 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData get currentTheme => _isDarkMode ? darkTheme : lightTheme;
 
   Color get primaryColor => const Color(0xFFE57F84);
-  
-  Color get backgroundColor => _isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFFDF8F5);
-  
-  Color get cardColor => _isDarkMode ? const Color(0xFF2D2D2D) : Colors.white;
-  
-  Color get textColor => _isDarkMode ? Colors.white : const Color(0xFF4E4A47);
-  
-  Color get secondaryTextColor => _isDarkMode ? const Color(0xFFB0B0B0) : const Color(0xFF8B7D7D);
-  
-  Color get surfaceColor => _isDarkMode ? const Color(0xFF3D3D3D) : Colors.white.withValues(alpha: 0.9);
 
-  List<Color> get backgroundGradient => _isDarkMode 
+  Color get backgroundColor =>
+      _isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFFDF8F5);
+
+  Color get cardColor => _isDarkMode ? const Color(0xFF2D2D2D) : Colors.white;
+
+  Color get textColor => _isDarkMode ? Colors.white : const Color(0xFF4E4A47);
+
+  Color get secondaryTextColor =>
+      _isDarkMode ? const Color(0xFFB0B0B0) : const Color(0xFF8B7D7D);
+
+  Color get surfaceColor => _isDarkMode
+      ? const Color(0xFF3D3D3D)
+      : Colors.white.withValues(alpha: 0.9);
+
+  List<Color> get backgroundGradient => _isDarkMode
       ? [const Color(0xFF1A1A1A), const Color(0xFF2D2D2D)]
       : [const Color(0xFFFDF8F5), const Color(0xFFF8E8E9)];
 
   List<Color> get cardGradient => _isDarkMode
       ? [const Color(0xFF2D2D2D), const Color(0xFF3D3D3D)]
       : [Colors.white, const Color(0xFFFDF8F5).withValues(alpha: 0.8)];
-} 
+}
