@@ -146,14 +146,14 @@ class ProductCard extends StatelessWidget {
                           product: product,
                           isCompact: true,
                         ),
-                        Text(
-                          '${product.price.toStringAsFixed(2)} جنيه',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 17,
-                            color: Theme.of(context).primaryColor,
-                          ),
+                    Text(
+                      '${product.price.toStringAsFixed(2)} جنيه',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
+                        color: Theme.of(context).primaryColor,
+                      ),
                         ),
                       ],
                     ),

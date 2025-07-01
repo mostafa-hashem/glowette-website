@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 import 'dart:async';
 
 class SearchWidget extends StatefulWidget {
@@ -95,99 +97,102 @@ class _SearchWidgetState extends State<SearchWidget>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.white,
-              const Color(0xFFFDF8F5).withValues(alpha: 0.8),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFE57F84).withValues(alpha: 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-          border: Border.all(
-            color: _hasText 
-                ? const Color(0xFFE57F84).withValues(alpha: 0.3)
-                : Colors.grey.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-        ),
-        child: TextField(
-          controller: _controller,
-          onChanged: _onSearchChanged,
-          textAlign: TextAlign.right,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFF4E4A47),
-            fontWeight: FontWeight.w500,
-          ),
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            hintStyle: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 16,
-            ),
-            prefixIcon: widget.isLoading
-                ? Container(
-                    padding: const EdgeInsets.all(12),
-                    child: const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE57F84)),
-                      ),
-                    ),
-                  )
-                : const Icon(
-                    Icons.search,
-                    color: Color(0xFFE57F84),
-                    size: 24,
-                  ),
-            suffixIcon: _hasText
-                ? ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: IconButton(
-                      onPressed: _clearSearch,
-                      icon: const Icon(
-                        Icons.clear,
-                        color: Color(0xFF8B7D7D),
-                        size: 20,
-                      ),
-                      tooltip: 'مسح البحث',
-                    ),
-                  )
-                : null,
-            border: OutlineInputBorder(
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: themeProvider.cardGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(25),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(25),
-              borderSide: const BorderSide(
-                color: Color(0xFFE57F84),
-                width: 2,
+              boxShadow: [
+                BoxShadow(
+                  color: themeProvider.isDarkMode 
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : themeProvider.primaryColor.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+              border: Border.all(
+                color: _hasText 
+                    ? themeProvider.primaryColor.withValues(alpha: 0.3)
+                    : themeProvider.secondaryTextColor.withValues(alpha: 0.2),
+                width: 1.5,
               ),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 16,
+            child: TextField(
+              controller: _controller,
+              onChanged: _onSearchChanged,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 16,
+                color: themeProvider.textColor,
+                fontWeight: FontWeight.w500,
+              ),
+              decoration: InputDecoration(
+                hintText: widget.hintText,
+                hintStyle: TextStyle(
+                  color: themeProvider.secondaryTextColor,
+                  fontSize: 16,
+                ),
+                prefixIcon: widget.isLoading
+                    ? Container(
+                        padding: const EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(themeProvider.primaryColor),
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        Icons.search,
+                        color: themeProvider.primaryColor,
+                        size: 24,
+                      ),
+                suffixIcon: _hasText
+                    ? ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: IconButton(
+                          onPressed: _clearSearch,
+                          icon: Icon(
+                            Icons.clear,
+                            color: themeProvider.secondaryTextColor,
+                            size: 20,
+                          ),
+                          tooltip: 'مسح البحث',
+                        ),
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: BorderSide(
+                    color: themeProvider.primaryColor,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                filled: true,
+                fillColor: Colors.transparent,
+              ),
             ),
-            filled: true,
-            fillColor: Colors.transparent,
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 } 

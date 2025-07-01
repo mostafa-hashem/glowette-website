@@ -5,9 +5,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/custom_toast.dart';
 import '../widgets/platform_image.dart';
+import '../models/product_model.dart';
 import 'login_screen.dart';
 import 'manage_products_screen.dart';
 import '../helper_methouds.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -25,6 +28,9 @@ class _AdminScreenState extends State<AdminScreen>
   final _benefitsController = TextEditingController();
   final _suitableForController = TextEditingController();
   final List<XFile> _imageFiles = [];
+  final List<ProductVariation> _variations = [];
+  final _variationSizeController = TextEditingController();
+  final _variationPriceController = TextEditingController();
   bool _isLoading = false;
   bool _isAvailable = true;
   final supabase = Supabase.instance.client;
@@ -64,6 +70,8 @@ class _AdminScreenState extends State<AdminScreen>
     _generalDescController.dispose();
     _benefitsController.dispose();
     _suitableForController.dispose();
+    _variationSizeController.dispose();
+    _variationPriceController.dispose();
     super.dispose();
   }
 
@@ -80,10 +88,59 @@ class _AdminScreenState extends State<AdminScreen>
     });
   }
 
+  void _addVariation() {
+    if (_variationSizeController.text.isEmpty ||
+        _variationPriceController.text.isEmpty) {
+      CustomToast.showWarning('يرجى إدخال الحجم والسعر');
+      return;
+    }
+
+    final price = double.tryParse(_variationPriceController.text);
+    if (price == null) {
+      CustomToast.showWarning('يرجى إدخال سعر صحيح');
+      return;
+    }
+
+    final variation = ProductVariation(
+      size: _variationSizeController.text.trim(),
+      price: price,
+      isAvailable: true,
+    );
+
+    setState(() {
+      _variations.add(variation);
+      _variationSizeController.clear();
+      _variationPriceController.clear();
+    });
+
+    CustomToast.showSuccess('تم إضافة الحجم بنجاح');
+  }
+
+  void _removeVariation(int index) {
+    setState(() {
+      _variations.removeAt(index);
+    });
+  }
+
+  void _clearAllFields() {
+    _formKey.currentState!.reset();
+    _nameController.clear();
+    _priceController.clear();
+    _generalDescController.clear();
+    _benefitsController.clear();
+    _suitableForController.clear();
+    _variationSizeController.clear();
+    _variationPriceController.clear();
+    setState(() {
+      _imageFiles.clear();
+      _variations.clear();
+      _isAvailable = true;
+    });
+  }
+
   Future<void> _uploadProduct() async {
     if (!_formKey.currentState!.validate() || _imageFiles.isEmpty) {
       CustomToast.showWarning(
-        context,
         'يرجى ملء جميع الحقول واختيار صورة واحدة على الأقل',
       );
       return;
@@ -106,19 +163,16 @@ class _AdminScreenState extends State<AdminScreen>
         'suitable_for': _suitableForController.text,
         'is_available': _isAvailable,
         'created_at': DateTime.now().toIso8601String(),
+        'variations': _variations.map((v) => v.toMap()).toList(),
       });
 
       CustomToast.showSuccess(
-        context,
         'تم رفع المنتج بنجاح! المنتج متاح الآن في المتجر.',
       );
-      _formKey.currentState!.reset();
-      setState(() {
-        _imageFiles.clear();
-      });
+
+      _clearAllFields();
     } catch (e) {
       CustomToast.showError(
-        context,
         'فشل في رفع المنتج. يرجى التحقق من الاتصال بالإنترنت والمحاولة مرة أخرى.',
       );
     } finally {
@@ -139,9 +193,10 @@ class _AdminScreenState extends State<AdminScreen>
     TextInputType? keyboardType,
     required String? Function(String?) validator,
   }) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Card(
       elevation: 8,
-      color: Colors.white.withValues(alpha: 0.95),
+      color: themeProvider.cardColor.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -150,32 +205,33 @@ class _AdminScreenState extends State<AdminScreen>
           decoration: InputDecoration(
             labelText: label,
             hintText: hint,
-            prefixIcon: Icon(icon, color: const Color(0xFFE57F84)),
+            prefixIcon: Icon(icon, color: themeProvider.primaryColor),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: BorderSide.none,
             ),
             filled: true,
-            fillColor: const Color(0xFFF8F8F8),
+            fillColor: themeProvider.cardColor,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
               vertical: 16,
             ),
-            labelStyle: const TextStyle(color: Color(0xFF4E4A47)),
+            labelStyle: TextStyle(color: themeProvider.textColor),
           ),
           maxLines: maxLines,
           keyboardType: keyboardType,
           validator: validator,
-          style: const TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16, color: themeProvider.textColor),
         ),
       ),
     );
   }
 
-  Widget _buildImageSection() {
+  Widget _buildVariationsSection() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Card(
       elevation: 8,
-      color: Colors.white.withValues(alpha: 0.95),
+      color: themeProvider.cardColor.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -184,14 +240,181 @@ class _AdminScreenState extends State<AdminScreen>
           children: [
             Row(
               children: [
-                Icon(Icons.photo_library, color: const Color(0xFFE57F84)),
+                Icon(Icons.format_size, color: themeProvider.primaryColor),
                 const SizedBox(width: 10),
-                const Text(
+                Text(
+                  'أحجام وأسعار المنتج',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: themeProvider.textColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (_variations.isNotEmpty) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: themeProvider.cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: _variations.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final variation = entry.value;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: themeProvider.cardColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color:
+                              themeProvider.primaryColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  variation.size,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: themeProvider.textColor,
+                                  ),
+                                ),
+                                Text(
+                                  variation.formattedPrice,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: themeProvider.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => _removeVariation(index),
+                            icon: const Icon(Icons.delete_outline),
+                            style: IconButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              backgroundColor:
+                                  Colors.red.withValues(alpha: 0.1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    controller: _variationSizeController,
+                    decoration: InputDecoration(
+                      labelText: 'الحجم',
+                      hintText: 'مثال: 125ml',
+                      prefixIcon: Icon(Icons.straighten,
+                          color: themeProvider.primaryColor),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: themeProvider.cardColor,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    controller: _variationPriceController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'السعر',
+                      hintText: 'مثال: 200',
+                      prefixIcon: Icon(Icons.attach_money,
+                          color: themeProvider.primaryColor),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: themeProvider.cardColor,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: _addVariation,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeProvider.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'إضافة أحجام مختلفة مع أسعارها (اختياري)',
+              style: TextStyle(
+                fontSize: 12,
+                color: themeProvider.secondaryTextColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSection() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    return Card(
+      elevation: 8,
+      color: themeProvider.cardColor.withValues(alpha: 0.95),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.photo_library, color: themeProvider.primaryColor),
+                const SizedBox(width: 10),
+                Text(
                   'صور المنتج',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4E4A47),
+                    color: themeProvider.textColor,
                   ),
                 ),
               ],
@@ -201,10 +424,10 @@ class _AdminScreenState extends State<AdminScreen>
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F8F8),
+                color: themeProvider.cardColor,
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
-                  color: const Color(0xFFE57F84).withValues(alpha: 0.3),
+                  color: themeProvider.primaryColor.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -214,22 +437,23 @@ class _AdminScreenState extends State<AdminScreen>
                         Icon(
                           Icons.cloud_upload_outlined,
                           size: 60,
-                          color: const Color(0xFFE57F84).withValues(alpha: 0.6),
+                          color:
+                              themeProvider.primaryColor.withValues(alpha: 0.6),
                         ),
                         const SizedBox(height: 15),
-                        const Text(
+                        Text(
                           'لم يتم اختيار صور',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF8B7D7D),
+                            color: themeProvider.secondaryTextColor,
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const Text(
+                        Text(
                           'اضغط على الزر بالأسفل لاختيار الصور',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFFB8A5A5),
+                            color: themeProvider.secondaryTextColor,
                           ),
                         ),
                       ],
@@ -275,11 +499,11 @@ class _AdminScreenState extends State<AdminScreen>
                                 onTap: () => _removeImage(index),
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     color: Colors.red,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.close,
                                     color: Colors.white,
                                     size: 16,
@@ -300,20 +524,22 @@ class _AdminScreenState extends State<AdminScreen>
                 onPressed: _pickImages,
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      const Color(0xFFE57F84).withValues(alpha: 0.1),
-                  foregroundColor: const Color(0xFFE57F84),
+                      themeProvider.primaryColor.withValues(alpha: 0.1),
+                  foregroundColor: themeProvider.primaryColor,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                     side: BorderSide(
-                      color: const Color(0xFFE57F84).withValues(alpha: 0.3),
+                      color: themeProvider.primaryColor.withValues(alpha: 0.3),
                     ),
                   ),
                 ),
                 icon: const Icon(Icons.add_photo_alternate),
-                label: const Text(
+                label: Text(
                   'اختيار الصور',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: themeProvider.textColor),
                 ),
               ),
             ),
@@ -325,16 +551,16 @@ class _AdminScreenState extends State<AdminScreen>
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    CustomToast.setContext(context);
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFDF8F5),
-              Color(0xFFF8E8E9),
-            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: themeProvider.backgroundGradient,
           ),
         ),
         child: SafeArea(
@@ -342,24 +568,52 @@ class _AdminScreenState extends State<AdminScreen>
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: themeProvider.cardColor.withValues(alpha: 0.1),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                ),
                 child: Row(
                   children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_ios_new),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.9),
-                        foregroundColor: const Color(0xFF4E4A47),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            themeProvider.primaryColor,
+                            themeProvider.primaryColor.withValues(alpha: 0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeProvider.primaryColor
+                                .withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back_ios_new),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.all(12),
+                        ),
+                        tooltip: 'العودة للصفحة الرئيسية',
                       ),
                     ),
                     const SizedBox(width: 15),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'رفع منتج جديد',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4E4A47),
+                          color: themeProvider.textColor,
                         ),
                       ),
                     ),
@@ -385,8 +639,8 @@ class _AdminScreenState extends State<AdminScreen>
                       tooltip: 'إدارة المنتجات',
                       style: IconButton.styleFrom(
                         backgroundColor:
-                            const Color(0xFFE57F84).withValues(alpha: 0.1),
-                        foregroundColor: const Color(0xFFE57F84),
+                            themeProvider.primaryColor.withValues(alpha: 0.1),
+                        foregroundColor: themeProvider.primaryColor,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -412,8 +666,8 @@ class _AdminScreenState extends State<AdminScreen>
                       tooltip: 'إدارة المراجعات',
                       style: IconButton.styleFrom(
                         backgroundColor:
-                            const Color(0xFFE57F84).withValues(alpha: 0.1),
-                        foregroundColor: const Color(0xFFE57F84),
+                            themeProvider.primaryColor.withValues(alpha: 0.1),
+                        foregroundColor: themeProvider.primaryColor,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -483,6 +737,8 @@ class _AdminScreenState extends State<AdminScreen>
                               },
                             ),
                             const SizedBox(height: 20),
+                            _buildVariationsSection(),
+                            const SizedBox(height: 20),
                             _buildFormField(
                               controller: _generalDescController,
                               label: 'الوصف العام',
@@ -518,7 +774,8 @@ class _AdminScreenState extends State<AdminScreen>
                             const SizedBox(height: 20),
                             Card(
                               elevation: 8,
-                              color: Colors.white.withValues(alpha: 0.95),
+                              color: themeProvider.cardColor
+                                  .withValues(alpha: 0.95),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20)),
                               child: Padding(
@@ -527,16 +784,16 @@ class _AdminScreenState extends State<AdminScreen>
                                   children: [
                                     Icon(
                                       Icons.inventory_outlined,
-                                      color: const Color(0xFFE57F84),
+                                      color: themeProvider.primaryColor,
                                       size: 24,
                                     ),
                                     const SizedBox(width: 16),
-                                    const Text(
+                                    Text(
                                       'حالة التوفر',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF4E4A47),
+                                        color: themeProvider.textColor,
                                       ),
                                     ),
                                     const Spacer(),
@@ -547,7 +804,7 @@ class _AdminScreenState extends State<AdminScreen>
                                           _isAvailable = value;
                                         });
                                       },
-                                      activeColor: const Color(0xFFE57F84),
+                                      activeColor: themeProvider.primaryColor,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
@@ -574,7 +831,7 @@ class _AdminScreenState extends State<AdminScreen>
                                   ? Container(
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(20),
-                                        color: const Color(0xFFE57F84)
+                                        color: themeProvider.primaryColor
                                             .withValues(alpha: 0.1),
                                       ),
                                       child: const Center(
@@ -585,22 +842,23 @@ class _AdminScreenState extends State<AdminScreen>
                                       onPressed: _uploadProduct,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
-                                            const Color(0xFFE57F84),
+                                            themeProvider.primaryColor,
                                         foregroundColor: Colors.white,
                                         elevation: 10,
-                                        shadowColor: const Color(0xFFE57F84)
+                                        shadowColor: themeProvider.primaryColor
                                             .withValues(alpha: 0.4),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
                                         ),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'رفع المنتج',
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                           letterSpacing: 1,
+                                          color: themeProvider.textColor,
                                         ),
                                       ),
                                     ),

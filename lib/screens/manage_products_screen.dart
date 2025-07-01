@@ -5,6 +5,8 @@ import '../widgets/loading_indicator.dart';
 import '../widgets/custom_toast.dart';
 import '../widgets/search_widget.dart';
 import 'edit_product_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   const ManageProductsScreen({super.key});
@@ -59,7 +61,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
       _fadeController.forward();
     } catch (e) {
       print('Error loading products: $e');
-      CustomToast.showError(context, 'حدث خطأ أثناء تحميل المنتجات');
+      CustomToast.showError('حدث خطأ أثناء تحميل المنتجات', emoji: '❌');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -93,10 +95,10 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
           .delete()
           .eq('id', product.id);
 
-      CustomToast.showSuccess(context, 'تم حذف ${product.name} بنجاح');
+      CustomToast.showSuccess('تم حذف ${product.name} بنجاح', emoji: '🗑️');
       _fetchProducts();
     } catch (e) {
-      CustomToast.showError(context, 'حدث خطأ أثناء حذف المنتج');
+      CustomToast.showError('حدث خطأ أثناء حذف المنتج', emoji: '❌');
     }
   }
 
@@ -156,15 +158,19 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
 
   @override
   Widget build(BuildContext context) {
+    CustomToast.setContext(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Scaffold(
+      backgroundColor: themeProvider.cardColor,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration:    BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFFDF8F5),
-              Color(0xFFF8E8E9),
+              themeProvider.backgroundGradient[0],
+              themeProvider.backgroundGradient[1],
             ],
           ),
         ),
@@ -241,6 +247,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
   }
 
   Widget _buildProductsList() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     if (filteredProducts.isEmpty) {
       return FadeTransition(
         opacity: _fadeAnimation,
@@ -256,10 +263,10 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
               const SizedBox(height: 20),
               Text(
                 _isSearching ? 'لا توجد نتائج للبحث' : 'لا توجد منتجات',
-                style: const TextStyle(
+                style:  TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF4E4A47),
+                  color: themeProvider.textColor,
                 ),
               ),
               const SizedBox(height: 10),
@@ -354,10 +361,12 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
   }
 
   Widget _buildProductCard(Product product) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 8,
-      color: Colors.white.withValues(alpha: 0.95),
+      color: themeProvider.cardColor.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -408,9 +417,9 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
                             ),
                             child: Text(
                               'ID: ${product.id}',
-                              style: const TextStyle(
+                              style:  TextStyle(
                                 fontSize: 12,
-                                color: Color(0xFF8B7D7D),
+                                color: themeProvider.secondaryTextColor,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -441,10 +450,10 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
                       const SizedBox(height: 8),
                       Text(
                         product.name,
-                        style: const TextStyle(
+                        style:  TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4E4A47),
+                          color: themeProvider.textColor,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -521,7 +530,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE57F84),
-                      foregroundColor: Colors.white,
+                      foregroundColor: themeProvider.textColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -543,7 +552,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
                     onPressed: () => _deleteProduct(product),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
+                      foregroundColor: themeProvider.textColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

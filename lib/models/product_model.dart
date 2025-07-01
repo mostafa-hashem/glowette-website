@@ -1,3 +1,35 @@
+class ProductVariation {
+  final String size;
+  final double price;
+  final bool isAvailable;
+
+  ProductVariation({
+    required this.size,
+    required this.price,
+    this.isAvailable = true,
+  });
+
+  factory ProductVariation.fromMap(Map<String, dynamic> map) {
+    return ProductVariation(
+      size: map['size'] ?? '',
+      price: (map['price'] as num? ?? 0).toDouble(),
+      isAvailable: map['is_available'] ?? true,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'size': size,
+      'price': price,
+      'is_available': isAvailable,
+    };
+  }
+
+  String get formattedPrice {
+    return '${price.toStringAsFixed(2)} جنيه';
+  }
+}
+
 class Product {
   final int id;
   final String name;
@@ -10,6 +42,7 @@ class Product {
   final DateTime createdAt;
   final double rating;
   final int reviewsCount;
+  final List<ProductVariation> variations;
 
   Product({
     required this.id,
@@ -23,9 +56,17 @@ class Product {
     DateTime? createdAt,
     this.rating = 0.0,
     this.reviewsCount = 0,
+    this.variations = const [],
   }) : createdAt = createdAt ?? DateTime.now();
 
   factory Product.fromMap(Map<String, dynamic> map) {
+    List<ProductVariation> variationsList = [];
+    if (map['variations'] != null) {
+      variationsList = (map['variations'] as List)
+          .map((v) => ProductVariation.fromMap(v))
+          .toList();
+    }
+
     return Product(
       id: map['id'],
       name: map['name'] ?? '',
@@ -40,6 +81,7 @@ class Product {
           : DateTime.now(),
       rating: (map['rating'] as num? ?? 0.0).toDouble(),
       reviewsCount: map['reviews_count'] ?? 0,
+      variations: variationsList,
     );
   }
 
@@ -56,6 +98,7 @@ class Product {
       'created_at': createdAt.toIso8601String(),
       'rating': rating,
       'reviews_count': reviewsCount,
+      'variations': variations.map((v) => v.toMap()).toList(),
     };
   }
 
@@ -92,5 +135,35 @@ class Product {
 
   bool get hasRating {
     return reviewsCount > 0 && rating > 0;
+  }
+
+  bool get hasVariations {
+    return variations.isNotEmpty;
+  }
+
+  double get minPrice {
+    if (variations.isEmpty) return price;
+    return variations.map((v) => v.price).reduce((a, b) => a < b ? a : b);
+  }
+
+  double get maxPrice {
+    if (variations.isEmpty) return price;
+    return variations.map((v) => v.price).reduce((a, b) => a > b ? a : b);
+  }
+
+  String get priceRange {
+    if (variations.isEmpty) {
+      return '${price.toStringAsFixed(2)} جنيه';
+    }
+    
+    if (minPrice == maxPrice) {
+      return '${minPrice.toStringAsFixed(2)} جنيه';
+    }
+    
+    return '${minPrice.toStringAsFixed(2)} - ${maxPrice.toStringAsFixed(2)} جنيه';
+  }
+
+  List<ProductVariation> get availableVariations {
+    return variations.where((v) => v.isAvailable).toList();
   }
 }

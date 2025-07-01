@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product_model.dart';
+import '../models/cart_item.dart';
 import '../providers/cart_provider.dart';
 
 class AddToCartButton extends StatefulWidget {
   final Product product;
+  final ProductVariation? selectedVariation;
   final bool isCompact;
   final VoidCallback? onAdded;
 
   const AddToCartButton({
     super.key,
     required this.product,
+    this.selectedVariation,
     this.isCompact = false,
     this.onAdded,
   });
@@ -56,12 +59,27 @@ class _AddToCartButtonState extends State<AddToCartButton>
 
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     
-    if (cartProvider.isInCart(widget.product.id)) {
-      await cartProvider.removeFromCart(widget.product.id);
-      cartProvider.showRemovedFromCartMessage(context, widget.product.name);
+    if (widget.selectedVariation != null) {
+      final cartItem = CartItem(
+        product: widget.product,
+        selectedVariation: widget.selectedVariation,
+      );
+      
+      if (cartProvider.isInCartWithVariation(widget.product.id, widget.selectedVariation)) {
+        await cartProvider.removeFromCartWithVariation(widget.product.id, widget.selectedVariation);
+        cartProvider.showRemovedFromCartMessage( widget.product.name);
+      } else {
+        await cartProvider.addCartItem(cartItem);
+        cartProvider.showAddedToCartMessage( widget.product.name);
+      }
     } else {
-      await cartProvider.addToCart(widget.product);
-      cartProvider.showAddedToCartMessage(context, widget.product.name);
+      if (cartProvider.isInCart(widget.product.id)) {
+        await cartProvider.removeFromCart(widget.product.id);
+        cartProvider.showRemovedFromCartMessage( widget.product.name);
+      } else {
+        await cartProvider.addToCart(widget.product);
+        cartProvider.showAddedToCartMessage( widget.product.name);
+      }
     }
     
     widget.onAdded?.call();
@@ -77,7 +95,9 @@ class _AddToCartButtonState extends State<AddToCartButton>
   Widget build(BuildContext context) {
     return Consumer<CartProvider>(
       builder: (context, cartProvider, child) {
-        final isInCart = cartProvider.isInCart(widget.product.id);
+        final isInCart = widget.selectedVariation != null 
+            ? cartProvider.isInCartWithVariation(widget.product.id, widget.selectedVariation)
+            : cartProvider.isInCart(widget.product.id);
         final quantity = cartProvider.getQuantity(widget.product.id);
 
         if (widget.isCompact) {

@@ -1,55 +1,148 @@
 import 'package:flutter/material.dart';
 
 class CustomToast {
-  static void show(
+  static OverlayEntry? _currentToast;
+
+  static void _showCustomToast(
     BuildContext context, {
     required String message,
-    ToastType type = ToastType.info,
-    Duration duration = const Duration(seconds: 4),
+    required Color backgroundColor,
+    required IconData icon,
+    String? emoji,
+    Duration duration = const Duration(seconds: 3),
   }) {
+    _removeCurrentToast();
+
     final overlay = Overlay.of(context);
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
       builder: (context) => _ToastWidget(
         message: message,
-        type: type,
+        backgroundColor: backgroundColor,
+        icon: icon,
+        emoji: emoji,
         duration: duration,
-        onDismiss: () => overlayEntry.remove(),
+        onDismiss: () {
+          overlayEntry.remove();
+          _currentToast = null;
+        },
       ),
     );
 
+    _currentToast = overlayEntry;
     overlay.insert(overlayEntry);
   }
 
-  static void showSuccess(BuildContext context, String message) {
-    show(context, message: message, type: ToastType.success);
+  static void _removeCurrentToast() {
+    _currentToast?.remove();
+    _currentToast = null;
   }
 
-  static void showError(BuildContext context, String message) {
-    show(context, message: message, type: ToastType.error, duration: const Duration(seconds: 5));
+  static void showSuccess(String message, {String? emoji}) {
+    final context = _getContext();
+    if (context != null) {
+      _showCustomToast(
+        context,
+        message: message,
+        backgroundColor: const Color(0xFF10B981),
+        icon: Icons.check_circle_rounded,
+        emoji: emoji,
+      );
+    }
   }
 
-  static void showWarning(BuildContext context, String message) {
-    show(context, message: message, type: ToastType.warning);
+  static void showInfo(String message, {String? emoji}) {
+    final context = _getContext();
+    if (context != null) {
+      _showCustomToast(
+        context,
+        message: message,
+        backgroundColor: const Color(0xFFE57F84),
+        icon: Icons.info_rounded,
+        emoji: emoji,
+      );
+    }
   }
 
-  static void showInfo(BuildContext context, String message) {
-    show(context, message: message, type: ToastType.info);
+  static void showError(String message, {String? emoji}) {
+    final context = _getContext();
+    if (context != null) {
+      _showCustomToast(
+        context,
+        message: message,
+        backgroundColor: const Color(0xFFEF4444),
+        icon: Icons.error_rounded,
+        emoji: emoji,
+        duration: const Duration(seconds: 4),
+      );
+    }
+  }
+
+  static void showWarning(String message, {String? emoji}) {
+    final context = _getContext();
+    if (context != null) {
+      _showCustomToast(
+        context,
+        message: message,
+        backgroundColor: const Color(0xFFF59E0B),
+        icon: Icons.warning_rounded,
+        emoji: emoji,
+      );
+    }
+  }
+
+  static void showUpdate(String message, {String? emoji}) {
+    final context = _getContext();
+    if (context != null) {
+      _showCustomToast(
+        context,
+        message: message,
+        backgroundColor: const Color(0xFF3B82F6),
+        icon: Icons.refresh_rounded,
+        emoji: emoji,
+      );
+    }
+  }
+
+  static void showNewItems(int count, {String? emoji}) {
+    final context = _getContext();
+    if (context != null) {
+      _showCustomToast(
+        context,
+        message: 'تم إضافة $count منتج جديد!',
+        backgroundColor: const Color(0xFFE57F84),
+        icon: Icons.celebration_rounded,
+        emoji: emoji,
+        duration: const Duration(seconds: 4),
+      );
+    }
+  }
+
+  static BuildContext? _getContext() {
+    return _currentContext;
+  }
+
+  static BuildContext? _currentContext;
+  
+  static void setContext(BuildContext context) {
+    _currentContext = context;
   }
 }
 
-enum ToastType { success, error, warning, info }
-
 class _ToastWidget extends StatefulWidget {
   final String message;
-  final ToastType type;
+  final Color backgroundColor;
+  final IconData icon;
+  final String? emoji;
   final Duration duration;
   final VoidCallback onDismiss;
 
   const _ToastWidget({
     required this.message,
-    required this.type,
+    required this.backgroundColor,
+    required this.icon,
+    this.emoji,
     required this.duration,
     required this.onDismiss,
   });
@@ -64,16 +157,17 @@ class _ToastWidgetState extends State<_ToastWidget>
   late AnimationController _progressController;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    
+
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    
+
     _progressController = AnimationController(
       duration: widget.duration,
       vsync: this,
@@ -93,6 +187,14 @@ class _ToastWidgetState extends State<_ToastWidget>
     ).animate(CurvedAnimation(
       parent: _slideController,
       curve: Curves.easeOut,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.elasticOut,
     ));
 
     _slideController.forward();
@@ -117,45 +219,6 @@ class _ToastWidgetState extends State<_ToastWidget>
     widget.onDismiss();
   }
 
-  Color _getBackgroundColor() {
-    switch (widget.type) {
-      case ToastType.success:
-        return const Color(0xFFE57F84);
-      case ToastType.error:
-        return const Color(0xFFFF5252);
-      case ToastType.warning:
-        return const Color(0xFFFF9800);
-      case ToastType.info:
-        return const Color(0xFF2196F3);
-    }
-  }
-
-  IconData _getIcon() {
-    switch (widget.type) {
-      case ToastType.success:
-        return Icons.check_circle_outline;
-      case ToastType.error:
-        return Icons.error_outline;
-      case ToastType.warning:
-        return Icons.warning_outlined;
-      case ToastType.info:
-        return Icons.info_outline;
-    }
-  }
-
-  String _getTitle() {
-    switch (widget.type) {
-      case ToastType.success:
-        return 'نجح';
-      case ToastType.error:
-        return 'خطأ';
-      case ToastType.warning:
-        return 'تحذير';
-      case ToastType.info:
-        return 'معلومة';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -166,120 +229,113 @@ class _ToastWidgetState extends State<_ToastWidget>
         position: _slideAnimation,
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: _getBackgroundColor().withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-                border: Border.all(
-                  color: _getBackgroundColor().withValues(alpha: 0.2),
-                  width: 1,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                      spreadRadius: 0,
+                    ),
+                    BoxShadow(
+                      color: widget.backgroundColor.withValues(alpha: 0.1),
+                      blurRadius: 40,
+                      offset: const Offset(0, 20),
+                      spreadRadius: 0,
+                    ),
+                  ],
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: _getBackgroundColor().withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _getIcon(),
-                          color: _getBackgroundColor(),
-                          size: 24,
-                        ),
-                      ),
-                      
-                      const SizedBox(width: 12),
-                      
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
                           children: [
-                            Text(
-                              _getTitle(),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: _getBackgroundColor(),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: widget.backgroundColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                widget.icon,
+                                color: widget.backgroundColor,
+                                size: 24,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.message,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF4E4A47),
-                                height: 1.3,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                widget.emoji != null 
+                                    ? '${widget.emoji} ${widget.message}'
+                                    : widget.message,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1F2937),
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: _dismiss,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      
-                      GestureDetector(
-                        onTap: _dismiss,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            size: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      height: 4,
-                      width: double.infinity,
-                      color: _getBackgroundColor().withValues(alpha: 0.1),
-                      child: AnimatedBuilder(
+                      AnimatedBuilder(
                         animation: _progressController,
                         builder: (context, child) {
-                          return FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: 1.0 - _progressController.value,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    _getBackgroundColor(),
-                                    _getBackgroundColor().withValues(alpha: 0.7),
-                                  ],
+                          return Container(
+                            height: 3,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                            ),
+                            child: FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: 1.0 - _progressController.value,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      widget.backgroundColor,
+                                      widget.backgroundColor.withValues(alpha: 0.7),
+                                    ],
+                                  ),
                                 ),
-                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
                           );
                         },
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

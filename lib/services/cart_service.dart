@@ -78,8 +78,28 @@ class CartService {
     await _saveCart();
   }
 
+  Future<void> addCartItem(CartItem cartItem) async {
+    final existingIndex = _cartItems.indexWhere((item) => item.uniqueId == cartItem.uniqueId);
+    
+    if (existingIndex >= 0) {
+      _cartItems[existingIndex].quantity += cartItem.quantity;
+    } else {
+      _cartItems.add(cartItem);
+    }
+    
+    await _saveCart();
+  }
+
   Future<void> removeFromCart(int productId) async {
     _cartItems.removeWhere((item) => item.product.id == productId);
+    await _saveCart();
+  }
+
+  Future<void> removeFromCartWithVariation(int productId, ProductVariation? variation) async {
+    final uniqueId = variation != null 
+        ? '${productId}_${variation.size}'
+        : productId.toString();
+    _cartItems.removeWhere((item) => item.uniqueId == uniqueId);
     await _saveCart();
   }
 
@@ -103,6 +123,13 @@ class CartService {
 
   bool isInCart(int productId) {
     return _cartItems.any((item) => item.product.id == productId);
+  }
+
+  bool isInCartWithVariation(int productId, ProductVariation? variation) {
+    final uniqueId = variation != null 
+        ? '${productId}_${variation.size}'
+        : productId.toString();
+    return _cartItems.any((item) => item.uniqueId == uniqueId);
   }
 
   int getQuantity(int productId) {

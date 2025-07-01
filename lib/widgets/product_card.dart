@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product_model.dart';
 import '../screens/product_detail_screen.dart';
+import '../providers/theme_provider.dart';
 import 'loading_indicator.dart';
+import 'add_to_cart_button.dart';
 
 class AnimatedProductCard extends StatefulWidget {
   final int index;
@@ -115,74 +118,81 @@ class _ProductCardState extends State<ProductCard>
   Widget build(BuildContext context) {
     final firstImage = widget.product.imageUrls.isNotEmpty ? widget.product.imageUrls.first : null;
 
-    return MouseRegion(
-      onEnter: (_) {
-        setState(() => _isHovered = true);
-        _hoverController.forward();
-      },
-      onExit: (_) {
-        setState(() => _isHovered = false);
-        _hoverController.reverse();
-      },
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              PageRouteBuilder(
-                transitionDuration: const Duration(milliseconds: 500),
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    ProductDetailScreen(product: widget.product),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return AnimatedOpacity(
+          opacity: widget.product.isAvailable ? 1.0 : 0.7,
+          duration: const Duration(milliseconds: 300),
+          child: MouseRegion(
+            onEnter: (_) {
+              setState(() => _isHovered = true);
+              _hoverController.forward();
+            },
+            onExit: (_) {
+              setState(() => _isHovered = false);
+              _hoverController.reverse();
+            },
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      transitionDuration: const Duration(milliseconds: 500),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          ProductDetailScreen(product: widget.product),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                    ),
+                  );
                 },
-              ),
-            );
-          },
-          child: Card(
-            elevation: _isHovered ? 16 : 8,
-            shadowColor: const Color(0xFFE57F84).withValues(alpha: 0.2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24.0),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24.0),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white,
-                    const Color(0xFFFDF8F5).withValues(alpha: 0.8),
-                  ],
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      flex: 7,
-                      child: _buildImageSection(firstImage),
+                child: Card(
+                  elevation: _isHovered ? 16 : 8,
+                  shadowColor: themeProvider.isDarkMode 
+                      ? Colors.black.withValues(alpha: 0.3) 
+                      : themeProvider.primaryColor.withValues(alpha: 0.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24.0),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24.0),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: themeProvider.cardGradient,
+                      ),
                     ),
-                    Expanded(
-                      flex: 4,
-                      child: _buildContentSection(),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            flex: 7,
+                            child: _buildImageSection(firstImage, themeProvider),
+                          ),
+                          Expanded(
+                            flex: 7,
+                            child: _buildContentSection(themeProvider),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildImageSection(String? firstImage) {
+  Widget _buildImageSection(String? firstImage, ThemeProvider themeProvider) {
     return Stack(
       children: [
         Container(
@@ -210,17 +220,21 @@ class _ProductCardState extends State<ProductCard>
               },
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Colors.grey[100],
-                  child: const Center(
-                    child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                  color: themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                  child: Icon(
+                    Icons.broken_image, 
+                    color: themeProvider.secondaryTextColor, 
+                    size: 40,
                   ),
                 );
               },
             )
                 : Container(
-              color: Colors.grey[100],
-              child: const Center(
-                child: Icon(Icons.image_not_supported, color: Colors.grey, size: 40),
+              color: themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[100],
+              child: Icon(
+                Icons.image_not_supported, 
+                color: themeProvider.secondaryTextColor, 
+                size: 40,
               ),
             ),
           ),
@@ -297,24 +311,51 @@ class _ProductCardState extends State<ProductCard>
             ],
           ),
         ),
+
+        if (!widget.product.isAvailable)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24.0),
+                color: Colors.grey.withValues(alpha: 0.3),
+              ),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'غير متوفر',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildContentSection() {
+  Widget _buildContentSection(ThemeProvider themeProvider) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
           Text(
             widget.product.name,
             textAlign: TextAlign.right,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold, 
               fontSize: 12,
-              color: Color(0xFF2D2D2D),
+              color: themeProvider.textColor,
               height: 1.1,
             ),
             maxLines: 1,
@@ -327,48 +368,48 @@ class _ProductCardState extends State<ProductCard>
             children: [
               Expanded(
                 child: Text(
-                  '${widget.product.price.toStringAsFixed(2)} جنيه',
+                  widget.product.priceRange,
                   textAlign: TextAlign.right,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
-                    color: Color(0xFFE57F84),
+                    color: themeProvider.primaryColor,
                   ),
                 ),
               ),
-              _buildRatingStars(),
+              _buildRatingStars(themeProvider),
             ],
           ),
           
           const SizedBox(height: 4),
           
-                      Flexible(
-              child: Text(
-                _getShortDescription,
-                textAlign: TextAlign.right,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[600],
-                  height: 1.1,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+          Flexible(
+            child: Text(
+              _getShortDescription,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 10,
+                color: themeProvider.secondaryTextColor,
+                height: 1.1,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
+          ),
           
           const SizedBox(height: 4),
           
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFFE57F84).withValues(alpha: 0.1),
+              color: themeProvider.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               _getMainBenefit(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 8,
-                color: Color(0xFFE57F84),
+                color: themeProvider.primaryColor,
                 fontWeight: FontWeight.bold,
               ),
               maxLines: 1,
@@ -376,12 +417,18 @@ class _ProductCardState extends State<ProductCard>
               textAlign: TextAlign.center,
             ),
           ),
+          const SizedBox(height: 8),
+          if (widget.product.isAvailable)
+            AddToCartButton(
+              product: widget.product,
+              isCompact: true,
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildRatingStars() {
+  Widget _buildRatingStars(ThemeProvider themeProvider) {
     final rating = widget.product.rating;
     final reviewsCount = widget.product.reviewsCount;
     
@@ -405,7 +452,7 @@ class _ProductCardState extends State<ProductCard>
             return Icon(
               Icons.star_border,
               size: 10,
-              color: Colors.grey[400],
+              color: themeProvider.secondaryTextColor.withValues(alpha: 0.6),
             );
           }
         }),
@@ -415,7 +462,7 @@ class _ProductCardState extends State<ProductCard>
             '($reviewsCount)',
             style: TextStyle(
               fontSize: 7,
-              color: Colors.grey[600],
+              color: themeProvider.secondaryTextColor,
             ),
           ),
         ],

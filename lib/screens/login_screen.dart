@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'admin_screen.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/custom_toast.dart';
+import '../providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -71,14 +73,16 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (mounted) {
         CustomToast.showSuccess(
-          context,
           "مرحباً بعودتك! تم تسجيل الدخول بنجاح إلى لوحة الإدارة.",
+          emoji: '🎉',
         );
-        
+
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const AdminScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const AdminScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },
             transitionDuration: const Duration(milliseconds: 500),
@@ -88,15 +92,15 @@ class _LoginScreenState extends State<LoginScreen>
     } on AuthException catch (e) {
       if (mounted) {
         CustomToast.showError(
-          context,
           e.message,
+          emoji: '❌',
         );
       }
     } catch (e) {
       if (mounted) {
         CustomToast.showError(
-          context,
           'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.',
+          emoji: '❌',
         );
       }
     } finally {
@@ -110,17 +114,28 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    CustomToast.setContext(context);
+
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
+      appBar: Navigator.of(context).canPop()
+          ? AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+                color: themeProvider.primaryColor,
+              ),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            )
+          : null,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFDF8F5),
-              Color(0xFFF8E8E9),
-              Color(0xFFF4D3D5),
-            ],
+            colors: themeProvider.backgroundGradient,
           ),
         ),
         child: SafeArea(
@@ -134,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen>
                     position: _slideAnimation,
                     child: Card(
                       elevation: 20,
-                      color: Colors.white.withValues(alpha: 0.95),
+                      color: themeProvider.cardColor.withValues(alpha: 0.95),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -148,41 +163,36 @@ class _LoginScreenState extends State<LoginScreen>
                               Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE57F84).withValues(alpha: 0.1),
+                                  color: themeProvider.primaryColor
+                                      .withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.admin_panel_settings,
                                   size: 60,
-                                  color: Color(0xFFE57F84),
+                                  color: themeProvider.primaryColor,
                                 ),
                               ),
-                              
                               const SizedBox(height: 30),
-                              
-                              const Text(
+                              Text(
                                 'مدير تطبيق Glowette',
                                 style: TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4E4A47),
+                                  color: themeProvider.textColor,
                                   letterSpacing: 1,
                                 ),
                               ),
-                              
                               const SizedBox(height: 10),
-                              
-                              const Text(
+                              Text(
                                 'أهلاً بعودتك! يرجى تسجيل الدخول للمتابعة',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: Color(0xFF8B7D7D),
+                                  color: themeProvider.secondaryTextColor,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                              
                               const SizedBox(height: 40),
-                              
                               TextFormField(
                                 controller: _emailController,
                                 decoration: InputDecoration(
@@ -193,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     borderSide: BorderSide.none,
                                   ),
                                   filled: true,
-                                  fillColor: const Color(0xFFF8F8F8),
+                                  fillColor: themeProvider.surfaceColor,
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 20,
                                     vertical: 16,
@@ -210,9 +220,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   return null;
                                 },
                               ),
-                              
                               const SizedBox(height: 20),
-                              
                               TextFormField(
                                 controller: _passwordController,
                                 decoration: InputDecoration(
@@ -220,8 +228,8 @@ class _LoginScreenState extends State<LoginScreen>
                                   prefixIcon: const Icon(Icons.lock_outline),
                                   suffixIcon: IconButton(
                                     icon: Icon(
-                                      _obscurePassword 
-                                          ? Icons.visibility_off 
+                                      _obscurePassword
+                                          ? Icons.visibility_off
                                           : Icons.visibility,
                                     ),
                                     onPressed: () {
@@ -235,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     borderSide: BorderSide.none,
                                   ),
                                   filled: true,
-                                  fillColor: const Color(0xFFF8F8F8),
+                                  fillColor: themeProvider.surfaceColor,
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 20,
                                     vertical: 16,
@@ -252,17 +260,17 @@ class _LoginScreenState extends State<LoginScreen>
                                   return null;
                                 },
                               ),
-                              
                               const SizedBox(height: 40),
-                              
                               SizedBox(
                                 width: double.infinity,
                                 height: 55,
                                 child: _isLoading
                                     ? Container(
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(15),
-                                          color: const Color(0xFFE57F84).withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          color: themeProvider.primaryColor
+                                              .withValues(alpha: 0.1),
                                         ),
                                         child: const Center(
                                           child: LoadingIndicator(size: 30),
@@ -271,12 +279,16 @@ class _LoginScreenState extends State<LoginScreen>
                                     : ElevatedButton(
                                         onPressed: _signIn,
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFFE57F84),
+                                          backgroundColor:
+                                              themeProvider.primaryColor,
                                           foregroundColor: Colors.white,
                                           elevation: 8,
-                                          shadowColor: const Color(0xFFE57F84).withValues(alpha: 0.4),
+                                          shadowColor: themeProvider
+                                              .primaryColor
+                                              .withOpacity(0.4),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(15),
+                                            borderRadius:
+                                                BorderRadius.circular(15),
                                           ),
                                         ),
                                         child: const Text(
@@ -289,7 +301,6 @@ class _LoginScreenState extends State<LoginScreen>
                                         ),
                                       ),
                               ),
-                              
                               const SizedBox(height: 20),
                             ],
                           ),

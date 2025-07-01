@@ -30,8 +30,18 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> addCartItem(CartItem cartItem) async {
+    await _cartService.addCartItem(cartItem);
+    notifyListeners();
+  }
+
   Future<void> removeFromCart(int productId) async {
     await _cartService.removeFromCart(productId);
+    notifyListeners();
+  }
+
+  Future<void> removeFromCartWithVariation(int productId, ProductVariation? variation) async {
+    await _cartService.removeFromCartWithVariation(productId, variation);
     notifyListeners();
   }
 
@@ -49,6 +59,10 @@ class CartProvider extends ChangeNotifier {
     return _cartService.isInCart(productId);
   }
 
+  bool isInCartWithVariation(int productId, ProductVariation? variation) {
+    return _cartService.isInCartWithVariation(productId, variation);
+  }
+
   int getQuantity(int productId) {
     return _cartService.getQuantity(productId);
   }
@@ -57,24 +71,24 @@ class CartProvider extends ChangeNotifier {
     return _cartService.getCartItem(productId);
   }
 
-  void showAddedToCartMessage(BuildContext context, String productName) {
+  void showAddedToCartMessage(String productName) {
     CustomToast.showSuccess(
-      context,
       'تم إضافة $productName إلى السلة بنجاح!',
+      emoji: '🛒',
     );
   }
 
-  void showRemovedFromCartMessage(BuildContext context, String productName) {
+  void showRemovedFromCartMessage(String productName) {
     CustomToast.showInfo(
-      context,
       'تم إزالة $productName من السلة.',
+      emoji: '🗑️',
     );
   }
 
-  void showUpdatedQuantityMessage(BuildContext context, String productName, int quantity) {
+  void showUpdatedQuantityMessage(String productName, int quantity) {
     CustomToast.showInfo(
-      context,
       'تم تحديث كمية $productName إلى $quantity.',
+      emoji: '📝',
     );
   }
 } 

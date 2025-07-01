@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import '../widgets/loading_indicator.dart';
+import '../providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -74,24 +76,22 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    // final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final themeProvider = Provider.of<ThemeProvider>(context);
     
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFDF8F5),
-              Color(0xFFF8E8E9),
-            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: themeProvider.backgroundGradient,
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
+              SizedBox(height: 22,),
               Expanded(
                 flex: 3,
                 child: Center(
@@ -107,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFE57F84).withValues(alpha: 0.3),
+                                color: themeProvider.primaryColor.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                               ),
@@ -121,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
                               return Icon(
                                 Icons.local_mall,
                                 size: screenWidth * 0.25,
-                                color: const Color(0xFFE57F84),
+                                color: themeProvider.primaryColor,
                               );
                             },
                           ),
@@ -139,12 +139,12 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     FadeTransition(
                       opacity: _fadeAnimation,
-                      child: const Text(
+                      child: Text(
                         'Glowette ✨',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4E4A47),
+                          color: themeProvider.textColor,
                           letterSpacing: 2,
                         ),
                       ),
@@ -154,11 +154,11 @@ class _SplashScreenState extends State<SplashScreen>
                     
                     FadeTransition(
                       opacity: _fadeAnimation,
-                      child: const Text(
+                      child: Text(
                         'رحلة جمالك تبدأ من هنا',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Color(0xFF8B7D7D),
+                          color: themeProvider.secondaryTextColor,
                           letterSpacing: 1,
                         ),
                       ),
@@ -181,11 +181,11 @@ class _SplashScreenState extends State<SplashScreen>
                     
                     FadeTransition(
                       opacity: _fadeAnimation,
-                      child: const Text(
+                      child: Text(
                         'جاري تحضير إشراقتك...',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFFB8A5A5),
+                          color: themeProvider.secondaryTextColor.withValues(alpha: 0.7),
                         ),
                       ),
                     ),

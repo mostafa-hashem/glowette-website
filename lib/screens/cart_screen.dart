@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/loading_indicator.dart';
+import '../widgets/custom_toast.dart';
+import '../providers/theme_provider.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -36,16 +38,17 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    CustomToast.setContext(context);
+    
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFDF8F5),
-              Color(0xFFF5E6E0),
-            ],
+            colors: themeProvider.backgroundGradient,
           ),
         ),
         child: SafeArea(
@@ -70,6 +73,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildAppBar(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -79,21 +83,21 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             onPressed: () => Navigator.pop(context),
             tooltip: 'العودة',
             style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.9),
-              foregroundColor: const Color(0xFF4E4A47),
+              backgroundColor: themeProvider.cardColor.withOpacity(0.9),
+              foregroundColor: themeProvider.textColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+           Expanded(
             child: Text(
               'سلة التسوق',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4E4A47),
+                color: themeProvider.textColor,
               ),
             ),
           ),
@@ -103,13 +107,13 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE57F84),
+                  color: themeProvider.primaryColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${cartProvider.itemCount} منتج',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: themeProvider.isDarkMode ? Colors.black : Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -123,6 +127,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildEmptyCart() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Center(
@@ -133,11 +138,11 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: themeProvider.cardColor.withValues(alpha: 0.8),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFE57F84).withValues(alpha: 0.2),
+                    color: themeProvider.primaryColor.withValues(alpha: 0.2),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -150,12 +155,12 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+             Text(
               'سلة التسوق فارغة',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4E4A47),
+                color: themeProvider.textColor,
               ),
             ),
             const SizedBox(height: 12),
@@ -170,8 +175,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             ElevatedButton.icon(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE57F84),
-                foregroundColor: Colors.white,
+                backgroundColor: themeProvider.primaryColor,
+                foregroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -213,11 +218,12 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildCartItem(item, CartProvider cartProvider, int index) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
         elevation: 8,
-        shadowColor: const Color(0xFFE57F84).withValues(alpha: 0.2),
+        shadowColor: themeProvider.primaryColor.withValues(alpha: 0.2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -228,8 +234,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white,
-                Colors.white.withValues(alpha: 0.9),
+                themeProvider.cardColor,
+                themeProvider.cardColor.withValues(alpha: 0.9),
               ],
             ),
           ),
@@ -267,19 +273,19 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                               },
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  color: Colors.grey[200],
+                                  color: themeProvider.cardColor,
                                   child: const Icon(
                                     Icons.broken_image,
-                                    color: Colors.grey,
+                                    color: Color(0xFF8D7A78),
                                   ),
                                 );
                               },
                             )
                           : Container(
-                              color: Colors.grey[200],
+                              color: themeProvider.cardColor,
                               child: const Icon(
                                 Icons.image_not_supported,
-                                color: Colors.grey,
+                                color: Color(0xFF8D7A78),
                               ),
                             ),
                     ),
@@ -292,10 +298,10 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     children: [
                       Text(
                         item.product.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4E4A47),
+                          color: themeProvider.textColor,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -303,10 +309,10 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                       const SizedBox(height: 8),
                       Text(
                         '${item.product.price.toStringAsFixed(2)} EGP',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFE57F84),
+                          color: themeProvider.primaryColor,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -332,19 +338,18 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFDF8F5),
+                              color: themeProvider.backgroundColor,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: const Color(0xFFE57F84)
-                                    .withValues(alpha: 0.3),
+                                color: themeProvider.primaryColor.withValues(alpha: 0.3),
                               ),
                             ),
                             child: Text(
                               '${item.quantity}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF4E4A47),
+                                color: themeProvider.textColor,
                               ),
                             ),
                           ),
@@ -366,7 +371,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                             color: Colors.red[400],
                             tooltip: 'إزالة المنتج',
                             style: IconButton.styleFrom(
-                              backgroundColor: Colors.red[50],
+                              backgroundColor: themeProvider.isDarkMode ? Colors.red[900] : Colors.red[50],
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -389,6 +394,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(8),
@@ -396,11 +402,11 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: const Color(0xFFE57F84),
+          color: themeProvider.primaryColor,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFE57F84).withValues(alpha: 0.3),
+              color: themeProvider.primaryColor.withValues(alpha: 0.3),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -416,10 +422,11 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildCheckoutSection(CartProvider cartProvider) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeProvider.primaryColor,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
@@ -438,7 +445,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[300],
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -459,10 +466,10 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                   const SizedBox(height: 4),
                   Text(
                     '${cartProvider.totalAmount.toStringAsFixed(2)} EGP',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFE57F84),
+                      color: themeProvider.primaryColor,
                     ),
                   ),
                 ],
@@ -471,13 +478,13 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE57F84).withValues(alpha: 0.1),
+                  color: themeProvider.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text(
                   '${cartProvider.itemCount} منتج',
-                  style: const TextStyle(
-                    color: Color(0xFFE57F84),
+                  style: TextStyle(
+                    color: themeProvider.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -498,13 +505,13 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE57F84),
-                foregroundColor: Colors.white,
+                backgroundColor: themeProvider.primaryColor,
+                foregroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
                 elevation: 8,
-                shadowColor: const Color(0xFFE57F84).withValues(alpha: 0.4),
+                shadowColor: themeProvider.primaryColor.withValues(alpha: 0.4),
               ),
               icon: const Icon(Icons.shopping_bag_outlined, size: 24),
               label: const Text(
@@ -522,3 +529,4 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
     );
   }
 }
+ 

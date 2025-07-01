@@ -3,6 +3,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../models/review_model.dart';
 import '../services/review_service.dart';
 import '../widgets/loading_indicator.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
+import '../widgets/custom_toast.dart';
 
 class ManageReviewsScreen extends StatefulWidget {
   const ManageReviewsScreen({super.key});
@@ -62,24 +65,27 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
   Future<void> _deleteReview(Review review) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('حذف المراجعة'),
-        content: Text('هل أنت متأكد من حذف مراجعة "${review.shortName}"؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+      builder: (context) {
+        final themeProvider = Provider.of<ThemeProvider>(context);
+        return AlertDialog(
+          title: Text('حذف المراجعة', style: TextStyle(color: themeProvider.textColor, fontWeight: FontWeight.bold)),
+          content: Text('هل أنت متأكد من حذف مراجعة "${review.shortName}"؟', style: TextStyle(color: themeProvider.secondaryTextColor)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('إلغاء', style: TextStyle(color: themeProvider.secondaryTextColor)),
             ),
-            child: const Text('حذف'),
-          ),
-        ],
-      ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('حذف'),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldDelete == true) {
@@ -103,10 +109,12 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    CustomToast.setContext(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('إدارة المراجعات'),
-        backgroundColor: const Color(0xFFE57F84),
+        backgroundColor: themeProvider.primaryColor,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -117,14 +125,11 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFDF8F5),
-              Color(0xFFF8E8E9),
-            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: themeProvider.backgroundGradient,
           ),
         ),
         child: Column(
@@ -143,6 +148,7 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
   }
 
   Widget _buildSearchAndFilter() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -156,7 +162,7 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
               hintText: 'ابحث في المراجعات...',
               prefixIcon: const Icon(Icons.search, color: Color(0xFFE57F84)),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: themeProvider.cardColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
                 borderSide: BorderSide.none,
@@ -200,6 +206,7 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
   }
 
   Widget _buildStatsCard() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final totalReviews = allReviews.length;
     final approvedReviews = allReviews.where((r) => r.isApproved).length;
     final averageRating = totalReviews > 0
@@ -210,7 +217,7 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -232,23 +239,24 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
   }
 
   Widget _buildStatItem(String title, String value, IconData icon) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Column(
       children: [
-        Icon(icon, color: const Color(0xFFE57F84), size: 24),
+        Icon(icon, color: themeProvider.primaryColor, size: 24),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2D2D2D),
+            color: themeProvider.textColor,
           ),
         ),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Color(0xFF8B7D7D),
+            color: themeProvider.secondaryTextColor,
           ),
         ),
       ],
@@ -256,6 +264,7 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
   }
 
   Widget _buildReviewsList() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     if (filteredReviews.isEmpty) {
       return Center(
         child: Column(
@@ -266,17 +275,17 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
                   ? Icons.search_off
                   : Icons.rate_review_outlined,
               size: 80,
-              color: const Color(0xFFE57F84).withValues(alpha: 0.6),
+              color: themeProvider.primaryColor.withValues(alpha: 0.6),
             ),
             const SizedBox(height: 20),
             Text(
               searchQuery.isNotEmpty || selectedFilter != 'الكل'
                   ? 'لا توجد مراجعات تطابق البحث'
                   : 'لا توجد مراجعات',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4E4A47),
+                color: themeProvider.textColor,
               ),
             ),
           ],
@@ -299,10 +308,11 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
   }
 
   Widget _buildReviewCard(Review review) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -325,17 +335,17 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
                     children: [
                       Text(
                         review.reviewerName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: Color(0xFF2D2D2D),
+                          color: themeProvider.textColor,
                         ),
                       ),
                       Text(
                         'معرف المنتج: ${review.productId}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF8B7D7D),
+                          color: themeProvider.secondaryTextColor,
                         ),
                       ),
                     ],

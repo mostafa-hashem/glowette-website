@@ -1,6 +1,7 @@
-
 import 'package:flutter/material.dart';
+import 'package:glowette/providers/theme_provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product_model.dart';
 import '../widgets/loading_indicator.dart';
@@ -105,8 +106,8 @@ class _EditProductScreenState extends State<EditProductScreen>
 
     if (_existingImageUrls.isEmpty && _newImageFiles.isEmpty) {
       CustomToast.showWarning(
-        context,
         'يرجى الاحتفاظ بصورة واحدة على الأقل للمنتج',
+        emoji: '⚠️',
       );
       return;
     }
@@ -134,15 +135,15 @@ class _EditProductScreenState extends State<EditProductScreen>
       }).eq('id', widget.product.id);
 
       CustomToast.showSuccess(
-        context,
         'تم تحديث المنتج بنجاح! تم حفظ جميع التغييرات.',
+        emoji: '✅',
       );
 
       Navigator.pop(context, true);
     } catch (e) {
       CustomToast.showError(
-        context,
         'فشل في تحديث المنتج. يرجى التحقق من الاتصال والمحاولة مرة أخرى.',
+        emoji: '❌',
       );
     } finally {
       if (mounted) {
@@ -162,9 +163,10 @@ class _EditProductScreenState extends State<EditProductScreen>
     TextInputType? keyboardType,
     required String? Function(String?) validator,
   }) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Card(
       elevation: 8,
-      color: Colors.white.withValues(alpha: 0.95),
+      color: themeProvider.cardColor.withValues(alpha:  0.95),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -179,12 +181,12 @@ class _EditProductScreenState extends State<EditProductScreen>
               borderSide: BorderSide.none,
             ),
             filled: true,
-            fillColor: const Color(0xFFF8F8F8),
+            fillColor: themeProvider.surfaceColor,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
               vertical: 16,
             ),
-            labelStyle: const TextStyle(color: Color(0xFF4E4A47)),
+            labelStyle: TextStyle(color: themeProvider.textColor),
           ),
           maxLines: maxLines,
           keyboardType: keyboardType,
@@ -196,9 +198,10 @@ class _EditProductScreenState extends State<EditProductScreen>
   }
 
   Widget _buildImageSection() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Card(
       elevation: 8,
-      color: Colors.white.withValues(alpha: 0.95),
+      color: themeProvider.cardColor.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -235,7 +238,7 @@ class _EditProductScreenState extends State<EditProductScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F8F8),
+                  color: themeProvider.surfaceColor,
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(
                     color: const Color(0xFFE57F84).withValues(alpha: 0.3),
@@ -420,15 +423,19 @@ class _EditProductScreenState extends State<EditProductScreen>
 
   @override
   Widget build(BuildContext context) {
+    CustomToast.setContext(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Scaffold(
+    backgroundColor: themeProvider.cardColor,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFFDF8F5),
-              Color(0xFFF8E8E9),
+              themeProvider.backgroundGradient[0],
+              themeProvider.backgroundGradient[1],
             ],
           ),
         ),
@@ -443,8 +450,8 @@ class _EditProductScreenState extends State<EditProductScreen>
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.arrow_back_ios_new),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.9),
-                        foregroundColor: const Color(0xFF4E4A47),
+                        backgroundColor: themeProvider.cardColor.withValues(alpha: 0.9),
+                        foregroundColor: themeProvider.textColor,
                       ),
                     ),
                     const SizedBox(width: 15),
@@ -452,19 +459,19 @@ class _EditProductScreenState extends State<EditProductScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                           Text(
                             'تعديل المنتج',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF4E4A47),
+                              color: themeProvider.textColor,
                             ),
                           ),
                           Text(
                             widget.product.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: Color(0xFF8B7D7D),
+                              color: themeProvider.secondaryTextColor,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -553,7 +560,7 @@ class _EditProductScreenState extends State<EditProductScreen>
 
                             Card(
                               elevation: 8,
-                              color: Colors.white.withValues(alpha: 0.95),
+                              color: themeProvider.cardColor.withValues(alpha: 0.95),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                               child: Padding(
                                 padding: const EdgeInsets.all(20.0),
@@ -622,7 +629,7 @@ class _EditProductScreenState extends State<EditProductScreen>
                                       onPressed: _updateProduct,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFFE57F84),
-                                        foregroundColor: Colors.white,
+                                        foregroundColor: themeProvider.textColor,
                                         elevation: 10,
                                         shadowColor: const Color(0xFFE57F84).withValues(alpha: 0.4),
                                         shape: RoundedRectangleBorder(
@@ -655,3 +662,4 @@ class _EditProductScreenState extends State<EditProductScreen>
     );
   }
 }
+ 

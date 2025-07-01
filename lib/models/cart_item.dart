@@ -2,16 +2,30 @@ import 'product_model.dart';
 
 class CartItem {
   final Product product;
+  final ProductVariation? selectedVariation;
   int quantity;
   final DateTime addedAt;
 
   CartItem({
     required this.product,
+    this.selectedVariation,
     this.quantity = 1,
     DateTime? addedAt,
   }) : addedAt = addedAt ?? DateTime.now();
 
-  double get totalPrice => product.price * quantity;
+  double get itemPrice {
+    return selectedVariation?.price ?? product.price;
+  }
+
+  double get totalPrice => itemPrice * quantity;
+
+  String get displaySize {
+    return selectedVariation?.size ?? 'الحجم الافتراضي';
+  }
+
+  String get formattedPrice {
+    return '${itemPrice.toStringAsFixed(2)} جنيه';
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -23,23 +37,40 @@ class CartItem {
         'description_general': product.descriptionGeneral,
         'key_benefits': product.keyBenefits,
         'suitable_for': product.suitableFor,
+        'variations': product.variations.map((v) => v.toMap()).toList(),
       },
+      'selected_variation': selectedVariation?.toMap(),
       'quantity': quantity,
       'addedAt': addedAt.millisecondsSinceEpoch,
     };
   }
 
   factory CartItem.fromMap(Map<String, dynamic> map) {
+    final productMap = map['product'];
+    List<ProductVariation> variations = [];
+    if (productMap['variations'] != null) {
+      variations = (productMap['variations'] as List)
+          .map((v) => ProductVariation.fromMap(v))
+          .toList();
+    }
+
+    ProductVariation? selectedVariation;
+    if (map['selected_variation'] != null) {
+      selectedVariation = ProductVariation.fromMap(map['selected_variation']);
+    }
+
     return CartItem(
       product: Product(
-        id: map['product']['id'],
-        name: map['product']['name'] ?? '',
-        price: (map['product']['price'] as num? ?? 0).toDouble(),
-        imageUrls: List<String>.from(map['product']['image_urls'] ?? []),
-        descriptionGeneral: map['product']['description_general'] ?? '',
-        keyBenefits: map['product']['key_benefits'] ?? '',
-        suitableFor: map['product']['suitable_for'] ?? '',
+        id: productMap['id'],
+        name: productMap['name'] ?? '',
+        price: (productMap['price'] as num? ?? 0).toDouble(),
+        imageUrls: List<String>.from(productMap['image_urls'] ?? []),
+        descriptionGeneral: productMap['description_general'] ?? '',
+        keyBenefits: productMap['key_benefits'] ?? '',
+        suitableFor: productMap['suitable_for'] ?? '',
+        variations: variations,
       ),
+      selectedVariation: selectedVariation,
       quantity: map['quantity'] ?? 1,
       addedAt: DateTime.fromMillisecondsSinceEpoch(map['addedAt'] ?? 0),
     );
@@ -47,13 +78,21 @@ class CartItem {
 
   CartItem copyWith({
     Product? product,
+    ProductVariation? selectedVariation,
     int? quantity,
     DateTime? addedAt,
   }) {
     return CartItem(
       product: product ?? this.product,
+      selectedVariation: selectedVariation ?? this.selectedVariation,
       quantity: quantity ?? this.quantity,
       addedAt: addedAt ?? this.addedAt,
     );
+  }
+
+  String get uniqueId {
+    return selectedVariation != null
+        ? '${product.id}_${selectedVariation!.size}'
+        : product.id.toString();
   }
 } 

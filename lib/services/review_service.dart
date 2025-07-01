@@ -4,7 +4,6 @@ import '../models/review_model.dart';
 class ReviewService {
   static final _supabase = Supabase.instance.client;
 
-  // جلب مراجعات منتج معين
   static Future<List<Review>> getProductReviews(int productId) async {
     try {
       final response = await _supabase
@@ -21,7 +20,6 @@ class ReviewService {
     }
   }
 
-  // إضافة مراجعة جديدة
   static Future<bool> addReview({
     required int productId,
     required String reviewerName,
@@ -38,7 +36,6 @@ class ReviewService {
         'is_approved': true,
       });
 
-      // تحديث تقييم المنتج ومتوسط النجوم
       await _updateProductRating(productId);
       
       return true;
@@ -48,12 +45,10 @@ class ReviewService {
     }
   }
 
-  // حذف مراجعة (للأدمن فقط)
   static Future<bool> deleteReview(int reviewId, int productId) async {
     try {
       await _supabase.from('reviews').delete().eq('id', reviewId);
       
-      // تحديث تقييم المنتج بعد الحذف
       await _updateProductRating(productId);
       
       return true;
@@ -63,7 +58,6 @@ class ReviewService {
     }
   }
 
-  // جلب جميع المراجعات (للأدمن)
   static Future<List<Review>> getAllReviews() async {
     try {
       final response = await _supabase
@@ -78,10 +72,8 @@ class ReviewService {
     }
   }
 
-  // تحديث تقييم المنتج
   static Future<void> _updateProductRating(int productId) async {
     try {
-      // حساب متوسط التقييم
       final reviews = await getProductReviews(productId);
       
       if (reviews.isNotEmpty) {
@@ -89,7 +81,6 @@ class ReviewService {
         final averageRating = totalRating / reviews.length;
         final reviewsCount = reviews.length;
 
-        // تحديث المنتج
         await _supabase
             .from('products')
             .update({
@@ -98,7 +89,6 @@ class ReviewService {
             })
             .eq('id', productId);
       } else {
-        // لا توجد مراجعات، تصفير التقييم
         await _supabase
             .from('products')
             .update({
@@ -112,7 +102,6 @@ class ReviewService {
     }
   }
 
-  // حساب إحصائيات التقييم
   static Map<int, int> calculateRatingDistribution(List<Review> reviews) {
     final distribution = <int, int>{};
     for (int i = 1; i <= 5; i++) {

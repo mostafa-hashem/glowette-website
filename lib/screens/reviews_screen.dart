@@ -4,6 +4,8 @@ import '../models/review_model.dart';
 import '../services/review_service.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/custom_toast.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 
 class ReviewsScreen extends StatefulWidget {
   final Product product;
@@ -74,7 +76,6 @@ class _ReviewsScreenState extends State<ReviewsScreen>
 
     if (success) {
       CustomToast.showSuccess(
-        context,
         'تم إضافة تقييمك بنجاح! شكراً لك على رأيك.',
       );
       _nameController.clear();
@@ -83,7 +84,6 @@ class _ReviewsScreenState extends State<ReviewsScreen>
       _loadReviews();
     } else {
       CustomToast.showError(
-        context,
         'حدث خطأ أثناء إضافة التقييم. يرجى المحاولة مرة أخرى.',
       );
     }
@@ -93,16 +93,17 @@ class _ReviewsScreenState extends State<ReviewsScreen>
 
   @override
   Widget build(BuildContext context) {
+    CustomToast.setContext(context);
+    
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
+            colors: themeProvider.backgroundGradient,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFDF8F5),
-              Color(0xFFF5E6E0),
-            ],
           ),
         ),
         child: SafeArea(
@@ -138,6 +139,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
   }
 
   Widget _buildAppBar() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -146,21 +148,21 @@ class _ReviewsScreenState extends State<ReviewsScreen>
             icon: const Icon(Icons.arrow_back_ios_new),
             onPressed: () => Navigator.pop(context),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.9),
-              foregroundColor: const Color(0xFF4E4A47),
+              backgroundColor: themeProvider.cardColor.withValues(alpha: 0.9),
+              foregroundColor: themeProvider.textColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Text(
               'التقييمات والمراجعات',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4E4A47),
+                color: themeProvider.textColor,
               ),
             ),
           ),
@@ -170,9 +172,10 @@ class _ReviewsScreenState extends State<ReviewsScreen>
   }
 
   Widget _buildProductInfo() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Card(
       elevation: 8,
-      shadowColor: const Color(0xFFE57F84).withValues(alpha: 0.2),
+      shadowColor: themeProvider.primaryColor.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -180,8 +183,10 @@ class _ReviewsScreenState extends State<ReviewsScreen>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          gradient: const LinearGradient(
-            colors: [Colors.white, Color(0xFFFDF8F5)],
+          gradient: LinearGradient(
+            colors: themeProvider.backgroundGradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
         child: Row(
@@ -198,7 +203,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                         return Container(
                           width: 80,
                           height: 80,
-                          color: Colors.grey[200],
+                          color: themeProvider.cardColor,
                           child: const Icon(Icons.broken_image),
                         );
                       },
@@ -206,7 +211,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                   : Container(
                       width: 80,
                       height: 80,
-                      color: Colors.grey[200],
+                      color: themeProvider.cardColor,
                       child: const Icon(Icons.image_not_supported),
                     ),
             ),
@@ -217,10 +222,10 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                 children: [
                   Text(
                     widget.product.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF4E4A47),
+                      color: themeProvider.textColor,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -228,10 +233,10 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                   const SizedBox(height: 8),
                   Text(
                     '${widget.product.price.toStringAsFixed(2)} جنيه',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFE57F84),
+                      color: themeProvider.primaryColor,
                     ),
                   ),
                 ],
@@ -244,34 +249,35 @@ class _ReviewsScreenState extends State<ReviewsScreen>
   }
 
   Widget _buildRatingSummary() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     if (reviews.isEmpty) {
       return Card(
         elevation: 8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           padding: const EdgeInsets.all(24),
-          child: const Column(
+          child:  Column(
             children: [
               Icon(
                 Icons.star_border,
                 size: 60,
                 color: Colors.grey,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'لا توجد تقييمات بعد',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF4E4A47),
+                  color: themeProvider.textColor,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 'كن أول من يقيم هذا المنتج!',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF8B7D7D),
+                  color: themeProvider.secondaryTextColor,
                 ),
               ),
             ],
@@ -366,6 +372,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
   }
 
   Widget _buildRatingBar(int starCount, int count, double percentage) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -380,8 +387,8 @@ class _ReviewsScreenState extends State<ReviewsScreen>
           Expanded(
             child: LinearProgressIndicator(
               value: percentage,
-              backgroundColor: Colors.grey[300],
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFE57F84)),
+              backgroundColor: themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[300],
+              valueColor: AlwaysStoppedAnimation<Color>(themeProvider.primaryColor),
               minHeight: 8,
             ),
           ),
@@ -390,7 +397,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
             width: 20,
             child: Text(
               '$count',
-              style: const TextStyle(fontSize: 12),
+              style: TextStyle(fontSize: 12, color: themeProvider.textColor),
               textAlign: TextAlign.end,
             ),
           ),
@@ -400,32 +407,37 @@ class _ReviewsScreenState extends State<ReviewsScreen>
   }
 
   Widget _buildAddReviewSection() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: themeProvider.cardColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'أضف تقييمك',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF4E4A47),
+                  color: themeProvider.textColor,
                 ),
               ),
               const SizedBox(height: 16),
               
-              const Text(
+              Text(
                 'التقييم:',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF4E4A47),
+                  color: themeProvider.textColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -459,14 +471,16 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                 decoration: InputDecoration(
                   labelText: 'اسمك',
                   hintText: 'أدخل اسمك',
-                  prefixIcon: const Icon(Icons.person_outline),
+                  prefixIcon: Icon(Icons.person_outline, color: themeProvider.primaryColor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(color: Color(0xFFE57F84)),
+                    borderSide: BorderSide(color: themeProvider.primaryColor),
                   ),
+                  filled: true,
+                  fillColor: themeProvider.surfaceColor,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -487,14 +501,16 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                 decoration: InputDecoration(
                   labelText: 'تعليقك',
                   hintText: 'شارك رأيك حول المنتج...',
-                  prefixIcon: const Icon(Icons.comment_outlined),
+                  prefixIcon: Icon(Icons.comment_outlined, color: themeProvider.primaryColor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(color: Color(0xFFE57F84)),
+                    borderSide: BorderSide(color: themeProvider.primaryColor),
                   ),
+                  filled: true,
+                  fillColor: themeProvider.surfaceColor,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -516,7 +532,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                     ? Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
-                          color: const Color(0xFFE57F84).withValues(alpha: 0.1),
+                          color: themeProvider.primaryColor.withOpacity(0.1),
                         ),
                         child: const Center(
                           child: LoadingIndicator(size: 30),
@@ -525,7 +541,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                     : ElevatedButton.icon(
                         onPressed: _submitReview,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE57F84),
+                          backgroundColor: themeProvider.primaryColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -533,11 +549,12 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                           elevation: 8,
                         ),
                         icon: const Icon(Icons.send),
-                        label: const Text(
+                        label: Text(
                           'إرسال التقييم',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: themeProvider.textColor,
                           ),
                         ),
                       ),
@@ -550,6 +567,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
   }
 
   Widget _buildReviewsList() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     if (reviews.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -559,10 +577,10 @@ class _ReviewsScreenState extends State<ReviewsScreen>
       children: [
         Text(
           'المراجعات (${reviews.length})',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF4E4A47),
+            color: themeProvider.textColor,
           ),
         ),
         const SizedBox(height: 16),
@@ -572,6 +590,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
   }
 
   Widget _buildReviewCard(Review review) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
@@ -584,13 +603,13 @@ class _ReviewsScreenState extends State<ReviewsScreen>
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: const Color(0xFFE57F84).withValues(alpha: 0.1),
+                  backgroundColor: themeProvider.primaryColor.withValues(alpha: 0.1),
                   child: Text(
                     review.reviewerName.isNotEmpty 
                         ? review.reviewerName[0].toUpperCase()
                         : '؟',
-                    style: const TextStyle(
-                      color: Color(0xFFE57F84),
+                    style: TextStyle(
+                      color: themeProvider.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -602,10 +621,10 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                     children: [
                       Text(
                         review.shortName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4E4A47),
+                          color: themeProvider.textColor,
                         ),
                       ),
                       Row(
@@ -616,7 +635,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                             review.formattedDate,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: themeProvider.secondaryTextColor,
                             ),
                           ),
                         ],
@@ -629,9 +648,9 @@ class _ReviewsScreenState extends State<ReviewsScreen>
             const SizedBox(height: 12),
             Text(
               review.comment,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF6B6B6B),
+                color: themeProvider.secondaryTextColor,
                 height: 1.4,
               ),
             ),
