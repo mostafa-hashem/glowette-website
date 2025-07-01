@@ -25,7 +25,8 @@ class GlowetteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => CartProvider()..initialize()),
+        ChangeNotifierProvider(
+            create: (context) => CartProvider()..initialize()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
       child: Consumer<ThemeProvider>(
@@ -52,7 +53,8 @@ class GlowetteApp extends StatelessWidget {
                 fontFamily: 'Almarai',
               ),
             ),
-            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            themeMode:
+                themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
             home: const SplashScreen(),
           );
         },

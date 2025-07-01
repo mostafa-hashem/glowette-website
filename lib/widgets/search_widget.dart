@@ -26,7 +26,7 @@ class _SearchWidgetState extends State<SearchWidget>
   final TextEditingController _controller = TextEditingController();
   Timer? _debounceTimer;
   bool _hasText = false;
-  
+
   late AnimationController _scaleController;
   late AnimationController _fadeController;
   late Animation<double> _scaleAnimation;
@@ -43,7 +43,7 @@ class _SearchWidgetState extends State<SearchWidget>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -51,7 +51,7 @@ class _SearchWidgetState extends State<SearchWidget>
       parent: _scaleController,
       curve: Curves.elasticOut,
     ));
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -111,7 +111,7 @@ class _SearchWidgetState extends State<SearchWidget>
               borderRadius: BorderRadius.circular(25),
               boxShadow: [
                 BoxShadow(
-                  color: themeProvider.isDarkMode 
+                  color: themeProvider.isDarkMode
                       ? Colors.black.withValues(alpha: 0.3)
                       : themeProvider.primaryColor.withValues(alpha: 0.1),
                   blurRadius: 20,
@@ -119,7 +119,7 @@ class _SearchWidgetState extends State<SearchWidget>
                 ),
               ],
               border: Border.all(
-                color: _hasText 
+                color: _hasText
                     ? themeProvider.primaryColor.withValues(alpha: 0.3)
                     : themeProvider.secondaryTextColor.withValues(alpha: 0.2),
                 width: 1.5,
@@ -148,7 +148,8 @@ class _SearchWidgetState extends State<SearchWidget>
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(themeProvider.primaryColor),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                themeProvider.primaryColor),
                           ),
                         ),
                       )
@@ -195,4 +196,4 @@ class _SearchWidgetState extends State<SearchWidget>
       },
     );
   }
-} 
+}
