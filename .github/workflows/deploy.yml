@@ -20,6 +20,11 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Create Supabase credentials file 🤫
+        run: |
+          echo "const String supabaseUrl = '${{ secrets.SUPABASE_URL }}';" > lib/supabase_credentials.dart
+          echo "const String supabaseAnonKey = '${{ secrets.SUPABASE_ANON_KEY }}';" >> lib/supabase_credentials.dart
+
       - name: Install dependencies 📦
         run: flutter pub get
 

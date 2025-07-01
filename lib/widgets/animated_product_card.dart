@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../screens/product_detail_screen.dart';
+import 'loading_indicator.dart';
+import 'add_to_cart_button.dart';
 
 class AnimatedProductCard extends StatefulWidget {
   final int index;
@@ -64,6 +66,7 @@ class _AnimatedProductCardState extends State<AnimatedProductCard>
   }
 }
 
+// ProductCard is where the changes are
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
@@ -74,6 +77,8 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firstImage = product.imageUrls.isNotEmpty ? product.imageUrls.first : null;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -102,10 +107,22 @@ class ProductCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Hero(
-                  tag: product.imagePath,
-                  child: Image.asset(
-                    product.imagePath,
+                  tag: firstImage ?? 'product_${product.id}',
+                  child: firstImage != null
+                      ? Image.network(
+                    firstImage,
                     fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(child: LoadingIndicator(size: 25));
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.broken_image, color: Colors.grey);
+                    },
+                  )
+                      : Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.image_not_supported, color: Colors.grey),
                   ),
                 ),
               ),
@@ -117,22 +134,28 @@ class ProductCard extends StatelessWidget {
                     Text(
                       product.name,
                       textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      '${product.price.toStringAsFixed(2)} جنيه',
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 17,
-                        color: Theme.of(context).primaryColor,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AddToCartButton(
+                          product: product,
+                          isCompact: true,
+                        ),
+                        Text(
+                          '${product.price.toStringAsFixed(2)} جنيه',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 17,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
