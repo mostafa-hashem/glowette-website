@@ -394,6 +394,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   }
 
   Widget _buildBackButton(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
@@ -410,11 +411,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         icon: const Icon(Icons.arrow_back_ios_new),
         onPressed: () => Navigator.pop(context),
         tooltip: 'العودة للمنتجات',
+        color: themeProvider.primaryColor,
       ),
     );
   }
 
   Widget _buildCartButton(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Consumer<CartProvider>(
       builder: (context, cartProvider, child) {
         final itemCount = cartProvider.itemCount;
@@ -444,6 +447,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   );
                 },
                 tooltip: 'عرض السلة',
+                color: themeProvider.primaryColor,
               ),
             ),
             if (itemCount > 0)
