@@ -116,6 +116,22 @@ class CartService {
     }
   }
 
+  Future<void> updateQuantityWithVariation(int productId, ProductVariation? variation, int newQuantity) async {
+    if (newQuantity <= 0) {
+      await removeFromCartWithVariation(productId, variation);
+      return;
+    }
+    
+    final uniqueId = variation != null 
+        ? '${productId}_${variation.size}'
+        : productId.toString();
+    final index = _cartItems.indexWhere((item) => item.uniqueId == uniqueId);
+    if (index >= 0) {
+      _cartItems[index].quantity = newQuantity;
+      await _saveCart();
+    }
+  }
+
   Future<void> clearCart() async {
     _cartItems.clear();
     await _saveCart();
@@ -135,6 +151,20 @@ class CartService {
   int getQuantity(int productId) {
     final item = _cartItems.firstWhere(
       (item) => item.product.id == productId,
+      orElse: () => CartItem(product: Product(
+        id: -1, name: '', price: 0, imageUrls: [], 
+        descriptionGeneral: '', keyBenefits: '', suitableFor: ''
+      )),
+    );
+    return item.product.id == -1 ? 0 : item.quantity;
+  }
+
+  int getQuantityWithVariation(int productId, ProductVariation? variation) {
+    final uniqueId = variation != null 
+        ? '${productId}_${variation.size}'
+        : productId.toString();
+    final item = _cartItems.firstWhere(
+      (item) => item.uniqueId == uniqueId,
       orElse: () => CartItem(product: Product(
         id: -1, name: '', price: 0, imageUrls: [], 
         descriptionGeneral: '', keyBenefits: '', suitableFor: ''

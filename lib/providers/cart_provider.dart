@@ -50,6 +50,11 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateQuantityWithVariation(int productId, ProductVariation? variation, int newQuantity) async {
+    await _cartService.updateQuantityWithVariation(productId, variation, newQuantity);
+    notifyListeners();
+  }
+
   Future<void> clearCart() async {
     await _cartService.clearCart();
     notifyListeners();
@@ -65,6 +70,10 @@ class CartProvider extends ChangeNotifier {
 
   int getQuantity(int productId) {
     return _cartService.getQuantity(productId);
+  }
+
+  int getQuantityWithVariation(int productId, ProductVariation? variation) {
+    return _cartService.getQuantityWithVariation(productId, variation);
   }
 
   CartItem? getCartItem(int productId) {

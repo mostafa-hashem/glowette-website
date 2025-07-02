@@ -98,7 +98,9 @@ class _AddToCartButtonState extends State<AddToCartButton>
         final isInCart = widget.selectedVariation != null 
             ? cartProvider.isInCartWithVariation(widget.product.id, widget.selectedVariation)
             : cartProvider.isInCart(widget.product.id);
-        final quantity = cartProvider.getQuantity(widget.product.id);
+        final quantity = widget.selectedVariation != null
+            ? cartProvider.getQuantityWithVariation(widget.product.id, widget.selectedVariation)
+            : cartProvider.getQuantity(widget.product.id);
 
         if (widget.isCompact) {
           return _buildCompactButton(isInCart, quantity);

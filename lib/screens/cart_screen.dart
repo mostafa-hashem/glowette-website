@@ -306,9 +306,26 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 4),
+                      if (item.selectedVariation != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'الحجم: ${item.displaySize}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: themeProvider.primaryColor,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 8),
                       Text(
-                        '${item.product.price.toStringAsFixed(2)} EGP',
+                        '${item.itemPrice.toStringAsFixed(2)} جنيه',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -316,19 +333,16 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
+                                              Row(
                         children: [
                           _buildQuantityButton(
                             icon: Icons.remove,
                             onPressed: () {
-                              if (item.quantity > 1) {
-                                cartProvider.updateQuantity(
-                                  item.product.id,
-                                  item.quantity - 1,
-                                );
-                              } else {
-                                cartProvider.removeFromCart(item.product.id);
-                              }
+                              cartProvider.updateQuantityWithVariation(
+                                item.product.id,
+                                item.selectedVariation,
+                                item.quantity - 1,
+                              );
                             },
                           ),
                           Container(
@@ -356,8 +370,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           _buildQuantityButton(
                             icon: Icons.add,
                             onPressed: () {
-                              cartProvider.updateQuantity(
+                              cartProvider.updateQuantityWithVariation(
                                 item.product.id,
+                                item.selectedVariation,
                                 item.quantity + 1,
                               );
                             },
@@ -365,7 +380,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           const Spacer(),
                           IconButton(
                             onPressed: () {
-                              cartProvider.removeFromCart(item.product.id);
+                              cartProvider.removeFromCartWithVariation(item.product.id, item.selectedVariation);
                             },
                             icon: const Icon(Icons.delete_outline),
                             color: Colors.red[400],
@@ -456,20 +471,20 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'المبلغ الإجمالي',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF8D7A78),
+                      color: themeProvider.isDarkMode ? Colors.white70 : Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${cartProvider.totalAmount.toStringAsFixed(2)} EGP',
+                    '${cartProvider.totalAmount.toStringAsFixed(2)} جنيه',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: themeProvider.primaryColor,
+                      color: themeProvider.isDarkMode ? Colors.white : Colors.white,
                     ),
                   ),
                 ],
@@ -478,13 +493,13 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                  color: themeProvider.isDarkMode ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text(
                   '${cartProvider.itemCount} منتج',
                   style: TextStyle(
-                    color: themeProvider.primaryColor,
+                    color: themeProvider.isDarkMode ? Colors.white : Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

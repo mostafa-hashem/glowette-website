@@ -619,9 +619,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    _selectedVariation != null
-                        ? _selectedVariation!.formattedPrice
-                        : widget.product.priceRange,
+                    // _selectedVariation != null
+                        _selectedVariation?.formattedPrice ?? "اختر الحجم",
+                        // : widget.product.priceRange,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -676,8 +676,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                             ? cartProvider.isInCartWithVariation(
                                 widget.product.id, _selectedVariation)
                             : cartProvider.isInCart(widget.product.id);
-                        final quantity =
-                            cartProvider.getQuantity(widget.product.id);
+                        final quantity = _selectedVariation != null
+                            ? cartProvider.getQuantityWithVariation(
+                                widget.product.id, _selectedVariation)
+                            : cartProvider.getQuantity(widget.product.id);
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
