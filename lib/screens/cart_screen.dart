@@ -1,14 +1,15 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/cart_provider.dart';
-import '../widgets/loading_indicator.dart';
-import '../widgets/custom_toast.dart';
-import '../providers/theme_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
+import 'package:glowette/models/product_model.dart';
+import 'package:glowette/providers/cart_provider.dart';
+import 'package:glowette/providers/theme_provider.dart';
+import 'package:glowette/widgets/custom_toast.dart';
+import 'package:glowette/widgets/loading_indicator.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -267,9 +268,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(15),
-                      child: item.product.imageUrls.isNotEmpty
+                      child: item.product.imageUrls.isNotEmpty as bool
                           ? Image.network(
-                              item.product.imageUrls.first,
+                              item.product.imageUrls.first as String,
                               fit: BoxFit.cover,
                               loadingBuilder:
                                   (context, child, loadingProgress) {
@@ -304,7 +305,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item.product.name,
+                        item.product.name as String,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -317,7 +318,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                       if (item.selectedVariation != null)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: themeProvider.primaryColor
                                 .withValues(alpha: 0.1),
@@ -348,9 +351,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                             icon: Icons.remove,
                             onPressed: () {
                               cartProvider.updateQuantityWithVariation(
-                                item.product.id,
-                                item.selectedVariation,
-                                item.quantity - 1,
+                                item.product.id as int,
+                                item.selectedVariation as ProductVariation,
+                                item.quantity - 1 as int,
                               );
                             },
                           ),
@@ -381,9 +384,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                             icon: Icons.add,
                             onPressed: () {
                               cartProvider.updateQuantityWithVariation(
-                                item.product.id,
-                                item.selectedVariation,
-                                item.quantity + 1,
+                                item.product.id as int,
+                                item.selectedVariation as ProductVariation,
+                                item.quantity + 1 as int,
                               );
                             },
                           ),
@@ -391,7 +394,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           IconButton(
                             onPressed: () {
                               cartProvider.removeFromCartWithVariation(
-                                  item.product.id, item.selectedVariation);
+                                item.product.id as int,
+                                item.selectedVariation as ProductVariation,
+                              );
                             },
                             icon: const Icon(Icons.delete_outline),
                             color: Colors.red[400],
@@ -545,29 +550,54 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 messageBuffer.writeln('--------------------');
                 messageBuffer.writeln('Product Name | Quantity | Size | Price');
                 messageBuffer.writeln('--------------------');
-                for (var item in cartItems) {
+                for (final item in cartItems) {
                   messageBuffer.writeln(
                     '${item.product.name} | ${item.quantity} | ${item.displaySize} | ${item.itemPrice.toStringAsFixed(2)} EGP',
                   );
                 }
                 messageBuffer.writeln('--------------------');
-                messageBuffer.write('Total: ${cartProvider.totalAmount.toStringAsFixed(2)} EGP');
+                messageBuffer.write(
+                  'Total: ${cartProvider.totalAmount.toStringAsFixed(2)} EGP',
+                );
                 final String message = messageBuffer.toString();
 
-                Uri.encodeComponent(message);
 
-
-                if (kIsWeb ||
-                    Platform.isWindows ||
-                    Platform.isMacOS ||
-                    Platform.isLinux) {
+                if (kIsWeb) {
+                  // جرب تفتح لينك واتساب ويب
+                  final String encodedMessage = Uri.encodeComponent(message);
+                  final String url = 'https://wa.me/201120502733?text=$encodedMessage';
+                  if (await canLaunchUrl(Uri.parse(url))) {
+                    await launchUrl(Uri.parse(url));
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('انسخ الرسالة وابعتها على واتساب'),
+                        content: SingleChildScrollView(child: SelectableText(message)),
+                        actions: [
+                          TextButton(
+                            onPressed: () async {
+                              await Clipboard.setData(ClipboardData(text: message));
+                              Navigator.of(context).pop();
+                              CustomToast.showSuccess('تم نسخ الرسالة!');
+                            },
+                            child: const Text('نسخ الرسالة'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('إغلاق'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+                  // desktop: dialog with copy
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: const Text('انسخ الرسالة وابعتها على واتساب'),
-                      content: SingleChildScrollView(
-                        child: SelectableText(message),
-                      ),
+                      content: SingleChildScrollView(child: SelectableText(message)),
                       actions: [
                         TextButton(
                           onPressed: () async {
@@ -598,7 +628,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                   if (await canLaunchUrl(uri)) {
                     await launchUrl(uri, mode: LaunchMode.externalApplication);
                   } else {
-                    CustomToast.showError('لا يمكن فتح واتساب. تأكد من تثبيت التطبيق.');
+                    CustomToast.showError('مش قادر أفتح الواتساب! تأكد إنه متثبت عندك.');
                   }
                 }
               },
