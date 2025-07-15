@@ -49,7 +49,7 @@ class _EditProductScreenState extends State<EditProductScreen>
     _variations = List.from(widget.product.availableVariations);
     if (_variations.isEmpty) {
       _variations
-          .add(ProductVariation(size: 'عادي', price: widget.product.price));
+          .add(ProductVariation(size: 'عادي', price: 0.0));
     }
     _isAvailable = widget.product.isAvailable;
 
@@ -165,7 +165,6 @@ class _EditProductScreenState extends State<EditProductScreen>
 
       await supabase.from('products').update({
         'name': _nameController.text,
-        'price': _variations.first.price,
         'variations': variationsJson,
         'image_urls': allImageUrls,
         'description_general': _generalDescController.text,
@@ -519,7 +518,7 @@ class _EditProductScreenState extends State<EditProductScreen>
                               borderRadius: BorderRadius.circular(10),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
+                                horizontal: 12, vertical: 8,),
                           ),
                           onChanged: (value) =>
                               _updateVariation(index, value, variation.price),
@@ -712,9 +711,9 @@ class _EditProductScreenState extends State<EditProductScreen>
                                 padding: const EdgeInsets.all(20.0),
                                 child: Row(
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.inventory_outlined,
-                                      color: const Color(0xFFE57F84),
+                                      color: Color(0xFFE57F84),
                                       size: 24,
                                     ),
                                     const SizedBox(width: 16),

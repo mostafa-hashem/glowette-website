@@ -774,7 +774,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             AddToCartButton(
               product: widget.product,
               selectedVariation: _selectedVariation,
-              isCompact: false,
             ),
             const SizedBox(height: 16),
             SizedBox(

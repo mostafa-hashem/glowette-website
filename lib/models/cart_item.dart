@@ -1,4 +1,4 @@
-import 'package:glowette/models/product_model.dart';
+import 'product_model.dart';
 
 class CartItem {
   final Product product;
@@ -14,13 +14,20 @@ class CartItem {
   }) : addedAt = addedAt ?? DateTime.now();
 
   double get itemPrice {
-    return selectedVariation?.price ?? product.price;
+    // لو فيه selectedVariation استخدم سعره، لو لأ استخدم أول سعر من الvariations
+    if (selectedVariation != null) {
+      return selectedVariation!.price;
+    } else if (product.variations.isNotEmpty) {
+      return product.variations.first.price;
+    } else {
+      return 0.0;
+    }
   }
 
   double get totalPrice => itemPrice * quantity;
 
   String get displaySize {
-    return selectedVariation?.size ?? 'الحجم الافتراضي';
+    return selectedVariation?.size ?? (product.variations.isNotEmpty ? product.variations.first.size : 'الحجم الافتراضي');
   }
 
   String get formattedPrice {
@@ -32,7 +39,6 @@ class CartItem {
       'product': {
         'id': product.id,
         'name': product.name,
-        'price': product.price,
         'image_urls': product.imageUrls,
         'description_general': product.descriptionGeneral,
         'key_benefits': product.keyBenefits,
@@ -50,29 +56,28 @@ class CartItem {
     List<ProductVariation> variations = [];
     if (productMap['variations'] != null) {
       variations = (productMap['variations'] as List)
-          .map((v) => ProductVariation.fromMap(v as Map<String, dynamic>))
+          .map((v) => ProductVariation.fromMap(v))
           .toList();
     }
 
     ProductVariation? selectedVariation;
     if (map['selected_variation'] != null) {
-      selectedVariation = ProductVariation.fromMap(map['selected_variation'] as Map<String, dynamic>);
+      selectedVariation = ProductVariation.fromMap(map['selected_variation']);
     }
 
     return CartItem(
       product: Product(
-        id: productMap['id'] as int? ?? 0,
-        name: productMap['name'] as String? ?? '',
-        price: (productMap['price'] as num? ?? 0).toDouble(),
-        imageUrls: List<String>.from(productMap['image_urls'] as Iterable<dynamic> ?? []),
-        descriptionGeneral: productMap['description_general'] as String? ?? '',
-        keyBenefits: productMap['key_benefits'] as String? ?? '',
-        suitableFor: productMap['suitable_for'] as String? ?? '',
-        variations: variations as List<ProductVariation>? ?? [],
+        id: productMap['id'],
+        name: productMap['name'] ?? '',
+        imageUrls: List<String>.from(productMap['image_urls'] ?? []),
+        descriptionGeneral: productMap['description_general'] ?? '',
+        keyBenefits: productMap['key_benefits'] ?? '',
+        suitableFor: productMap['suitable_for'] ?? '',
+        variations: variations,
       ),
       selectedVariation: selectedVariation,
-      quantity: map['quantity'] as int? ?? 1,
-      addedAt: DateTime.fromMillisecondsSinceEpoch(map['addedAt'] as int? ?? 0),
+      quantity: map['quantity'] ?? 1,
+      addedAt: DateTime.fromMillisecondsSinceEpoch(map['addedAt'] ?? 0),
     );
   }
 

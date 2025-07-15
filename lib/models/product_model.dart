@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class ProductVariation {
   final String size;
   final double price;
@@ -11,9 +13,13 @@ class ProductVariation {
 
   factory ProductVariation.fromMap(Map<String, dynamic> map) {
     return ProductVariation(
-      size: map['size'] as String? ?? '',
-      price: (map['price'] as num? ?? 0).toDouble(),
-      isAvailable: map['is_available'] as bool? ?? true,
+      size: map['size']?.toString() ?? '',
+      price: double.tryParse(map['price']?.toString() ?? '0') ?? 0.0,
+      isAvailable: map['is_available'] == null
+          ? true
+          : (map['is_available'] is bool
+              ? map['is_available'] as bool
+              : (map['is_available']?.toString() == 'true')),
     );
   }
 
@@ -33,7 +39,6 @@ class ProductVariation {
 class Product {
   final int id;
   final String name;
-  final double price;
   final List<String> imageUrls;
   final String descriptionGeneral;
   final String keyBenefits;
@@ -47,7 +52,6 @@ class Product {
   Product({
     required this.id,
     required this.name,
-    required this.price,
     required this.imageUrls,
     required this.descriptionGeneral,
     required this.keyBenefits,
@@ -61,27 +65,42 @@ class Product {
 
   factory Product.fromMap(Map<String, dynamic> map) {
     List<ProductVariation> variationsList = [];
-    if (map['variations'] != null) {
-      variationsList = (map['variations'] as List)
-          .map((v) => ProductVariation.fromMap(v as Map<String, dynamic>))
-          .toList();
+    var variationsRaw = map['variations'];
+    if (variationsRaw != null) {
+      if (variationsRaw is String) {
+        try {
+          variationsRaw = jsonDecode(variationsRaw);
+        } catch (_) {
+          variationsRaw = [];
+        }
+      }
+      if (variationsRaw is List) {
+        variationsList = variationsRaw
+            .map((v) => ProductVariation.fromMap(Map<String, dynamic>.from(v as Map)))
+            .toList();
+      }
     }
 
     return Product(
-      id: map['id'] as int? ?? 0,
-      name: map['name'] as String? ?? '',
-      price: (map['price'] as num? ?? 0).toDouble(),
-      imageUrls: List<String>.from(map['image_urls'] as Iterable<dynamic> ?? []),
-      descriptionGeneral: map['description_general'] as String? ?? '',
-      keyBenefits: map['key_benefits'] as String? ?? '',
-      suitableFor: map['suitable_for'] as String? ?? '',
-      isAvailable: map['is_available'] as bool? ?? true,
+      id: int.tryParse(map['id']?.toString() ?? '0') ?? 0,
+      name: map['name']?.toString() ?? '',
+      imageUrls: (map['image_urls'] is List)
+          ? List<String>.from((map['image_urls'] as List).map((e) => e.toString()))
+          : [],
+      descriptionGeneral: map['description_general']?.toString() ?? '',
+      keyBenefits: map['key_benefits']?.toString() ?? '',
+      suitableFor: map['suitable_for']?.toString() ?? '',
+      isAvailable: map['is_available'] == null
+          ? true
+          : (map['is_available'] is bool
+              ? map['is_available'] as bool
+              : (map['is_available']?.toString() == 'true')),
       createdAt: map['created_at'] != null 
-          ? DateTime.parse(map['created_at'] as String? ?? '')
+          ? DateTime.tryParse(map['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
-      rating: (map['rating'] as num? ?? 0.0).toDouble(),
-      reviewsCount: map['reviews_count'] as int? ?? 0,
-      variations: variationsList as List<ProductVariation>? ?? [],
+      rating: double.tryParse(map['rating']?.toString() ?? '0') ?? 0.0,
+      reviewsCount: int.tryParse(map['reviews_count']?.toString() ?? '0') ?? 0,
+      variations: variationsList,
     );
   }
 
@@ -89,7 +108,6 @@ class Product {
     return {
       'id': id,
       'name': name,
-      'price': price,
       'image_urls': imageUrls,
       'description_general': descriptionGeneral,
       'key_benefits': keyBenefits,
@@ -105,7 +123,6 @@ class Product {
   String get formattedCreatedAt {
     final now = DateTime.now();
     final difference = now.difference(createdAt).inDays;
-    
     if (difference == 0) {
       return 'اليوم';
     } else if (difference == 1) {
@@ -142,24 +159,22 @@ class Product {
   }
 
   double get minPrice {
-    if (variations.isEmpty) return price;
+    if (variations.isEmpty) return 0.0;
     return variations.map((v) => v.price).reduce((a, b) => a < b ? a : b);
   }
 
   double get maxPrice {
-    if (variations.isEmpty) return price;
+    if (variations.isEmpty) return 0.0;
     return variations.map((v) => v.price).reduce((a, b) => a > b ? a : b);
   }
 
   String get priceRange {
     if (variations.isEmpty) {
-      return '${price.toStringAsFixed(2)} جنيه';
+      return 'غير محدد';
     }
-    
     if (minPrice == maxPrice) {
       return '${minPrice.toStringAsFixed(2)} جنيه';
     }
-    
     return '${minPrice.toStringAsFixed(2)} - ${maxPrice.toStringAsFixed(2)} جنيه';
   }
 

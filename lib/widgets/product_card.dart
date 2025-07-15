@@ -389,6 +389,17 @@ class _ProductCardState extends State<ProductCard>
           
           const SizedBox(height: 4),
           
+          Text(
+            widget.product.priceRange,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: themeProvider.primaryColor,
+            ),
+          ),
+          
+          const SizedBox(height: 4),
+          
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(

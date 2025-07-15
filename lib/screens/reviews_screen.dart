@@ -232,7 +232,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${widget.product.price.toStringAsFixed(2)} جنيه',
+                    '${widget.product.minPrice.toStringAsFixed(2)} جنيه',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

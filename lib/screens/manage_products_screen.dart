@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/product_model.dart';
-import '../widgets/loading_indicator.dart';
-import '../widgets/custom_toast.dart';
-import '../widgets/search_widget.dart';
-import 'edit_product_screen.dart';
+import 'package:glowette/models/product_model.dart';
+import 'package:glowette/providers/theme_provider.dart';
+import 'package:glowette/screens/edit_product_screen.dart';
+import 'package:glowette/widgets/custom_toast.dart';
+import 'package:glowette/widgets/loading_indicator.dart';
+import 'package:glowette/widgets/search_widget.dart';
 import 'package:provider/provider.dart';
-import '../providers/theme_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ManageProductsScreen extends StatefulWidget {
   const ManageProductsScreen({super.key});
@@ -462,7 +462,7 @@ class _ManageProductsScreenState extends State<ManageProductsScreen>
                       Row(
                         children: [
                           Text(
-                            '${product.price.toStringAsFixed(2)} جنيه',
+                            '${product.minPrice.toStringAsFixed(2)} جنيه',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:glowette/helper_methouds.dart';
+import 'package:glowette/models/product_model.dart';
+import 'package:glowette/providers/theme_provider.dart';
+import 'package:glowette/screens/login_screen.dart';
+import 'package:glowette/screens/manage_products_screen.dart';
 import 'package:glowette/screens/manage_reviews_screen.dart';
+import 'package:glowette/widgets/custom_toast.dart';
+import 'package:glowette/widgets/loading_indicator.dart';
+import 'package:glowette/widgets/platform_image.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../widgets/loading_indicator.dart';
-import '../widgets/custom_toast.dart';
-import '../widgets/platform_image.dart';
-import '../models/product_model.dart';
-import 'login_screen.dart';
-import 'manage_products_screen.dart';
-import '../helper_methouds.dart';
 import 'package:provider/provider.dart';
-import '../providers/theme_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -54,10 +54,12 @@ class _AdminScreenState extends State<AdminScreen>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
 
     _animationController.forward();
   }
@@ -103,8 +105,7 @@ class _AdminScreenState extends State<AdminScreen>
 
     final variation = ProductVariation(
       size: _variationSizeController.text.trim(),
-      price: price,
-      isAvailable: true,
+      price: double.parse(_variationPriceController.text.trim()),
     );
 
     setState(() {
@@ -146,17 +147,22 @@ class _AdminScreenState extends State<AdminScreen>
       return;
     }
 
+    if (_variations.isEmpty) {
+      CustomToast.showWarning('لازم تضيف على الأقل حجم وسعر واحد للمنتج');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
+      debugPrint('variations to upload:  [32m [1m [4m${_variations.map((v) => v.toMap()).toList()} [0m');
       final List<String> imageUrls =
           await FileUploadHelper.uploadMultipleImages(_imageFiles);
 
       await supabase.from('products').insert({
         'name': _nameController.text,
-        'price': double.parse(_priceController.text),
         'image_urls': imageUrls,
         'description_general': _generalDescController.text,
         'key_benefits': _benefitsController.text,
@@ -326,8 +332,10 @@ class _AdminScreenState extends State<AdminScreen>
                     decoration: InputDecoration(
                       labelText: 'الحجم',
                       hintText: 'مثال: 125ml',
-                      prefixIcon: Icon(Icons.straighten,
-                          color: themeProvider.primaryColor),
+                      prefixIcon: Icon(
+                        Icons.straighten,
+                        color: themeProvider.primaryColor,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -335,7 +343,9 @@ class _AdminScreenState extends State<AdminScreen>
                       filled: true,
                       fillColor: themeProvider.cardColor,
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ),
@@ -348,8 +358,10 @@ class _AdminScreenState extends State<AdminScreen>
                     decoration: InputDecoration(
                       labelText: 'السعر',
                       hintText: 'مثال: 200',
-                      prefixIcon: Icon(Icons.attach_money,
-                          color: themeProvider.primaryColor),
+                      prefixIcon: Icon(
+                        Icons.attach_money,
+                        color: themeProvider.primaryColor,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -357,7 +369,9 @@ class _AdminScreenState extends State<AdminScreen>
                       filled: true,
                       fillColor: themeProvider.cardColor,
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ),
@@ -371,7 +385,9 @@ class _AdminScreenState extends State<AdminScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                   child: const Icon(
                     Icons.add,
@@ -486,7 +502,6 @@ class _AdminScreenState extends State<AdminScreen>
                                 borderRadius: BorderRadius.circular(12),
                                 child: PlatformImage(
                                   imageFile: _imageFiles[index],
-                                  fit: BoxFit.cover,
                                   width: double.infinity,
                                   height: double.infinity,
                                 ),
@@ -499,11 +514,11 @@ class _AdminScreenState extends State<AdminScreen>
                                 onTap: () => _removeImage(index),
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: Colors.red,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.close,
                                     color: Colors.white,
                                     size: 16,
@@ -538,8 +553,9 @@ class _AdminScreenState extends State<AdminScreen>
                 label: Text(
                   'اختيار الصور',
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: themeProvider.textColor),
+                    fontWeight: FontWeight.bold,
+                    color: themeProvider.textColor,
+                  ),
                 ),
               ),
             ),
@@ -625,10 +641,16 @@ class _AdminScreenState extends State<AdminScreen>
                             pageBuilder:
                                 (context, animation, secondaryAnimation) =>
                                     const ManageProductsScreen(),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
+                            transitionsBuilder: (
+                              context,
+                              animation,
+                              secondaryAnimation,
+                              child,
+                            ) {
                               return FadeTransition(
-                                  opacity: animation, child: child);
+                                opacity: animation,
+                                child: child,
+                              );
                             },
                             transitionDuration:
                                 const Duration(milliseconds: 500),
@@ -652,10 +674,16 @@ class _AdminScreenState extends State<AdminScreen>
                             pageBuilder:
                                 (context, animation, secondaryAnimation) =>
                                     const ManageReviewsScreen(),
-                            transitionsBuilder: (context, animation,
-                                secondaryAnimation, child) {
+                            transitionsBuilder: (
+                              context,
+                              animation,
+                              secondaryAnimation,
+                              child,
+                            ) {
                               return FadeTransition(
-                                  opacity: animation, child: child);
+                                opacity: animation,
+                                child: child,
+                              );
                             },
                             transitionDuration:
                                 const Duration(milliseconds: 500),
@@ -682,10 +710,16 @@ class _AdminScreenState extends State<AdminScreen>
                               pageBuilder:
                                   (context, animation, secondaryAnimation) =>
                                       const LoginScreen(),
-                              transitionsBuilder: (context, animation,
-                                  secondaryAnimation, child) {
+                              transitionsBuilder: (
+                                context,
+                                animation,
+                                secondaryAnimation,
+                                child,
+                              ) {
                                 return FadeTransition(
-                                    opacity: animation, child: child);
+                                  opacity: animation,
+                                  child: child,
+                                );
                               },
                               transitionDuration:
                                   const Duration(milliseconds: 500),
@@ -720,21 +754,6 @@ class _AdminScreenState extends State<AdminScreen>
                               validator: (value) => value!.isEmpty
                                   ? 'يرجى إدخال اسم المنتج'
                                   : null,
-                            ),
-                            const SizedBox(height: 20),
-                            _buildFormField(
-                              controller: _priceController,
-                              label: 'السعر (جنيه مصري)',
-                              hint: 'أدخل السعر بالجنيه المصري',
-                              icon: Icons.attach_money,
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value!.isEmpty) return 'يرجى إدخال السعر';
-                                if (double.tryParse(value) == null) {
-                                  return 'يرجى إدخال سعر صحيح';
-                                }
-                                return null;
-                              },
                             ),
                             const SizedBox(height: 20),
                             _buildVariationsSection(),
@@ -777,7 +796,8 @@ class _AdminScreenState extends State<AdminScreen>
                               color: themeProvider.cardColor
                                   .withValues(alpha: 0.95),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                               child: Padding(
                                 padding: const EdgeInsets.all(20.0),
                                 child: Row(

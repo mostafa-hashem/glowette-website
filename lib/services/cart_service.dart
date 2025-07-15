@@ -151,8 +151,8 @@ class CartService {
     final item = _cartItems.firstWhere(
       (item) => item.product.id == productId,
       orElse: () => CartItem(product: Product(
-        id: -1, name: '', price: 0, imageUrls: [], 
-        descriptionGeneral: '', keyBenefits: '', suitableFor: ''
+        id: -1, name: '', imageUrls: [],
+        descriptionGeneral: '', keyBenefits: '', suitableFor: '', variations: [],
       )),
     );
     return item.product.id == -1 ? 0 : item.quantity;
@@ -165,8 +165,8 @@ class CartService {
     final item = _cartItems.firstWhere(
       (item) => item.uniqueId == uniqueId,
       orElse: () => CartItem(product: Product(
-        id: -1, name: '', price: 0, imageUrls: [], 
-        descriptionGeneral: '', keyBenefits: '', suitableFor: ''
+        id: -1, name: '', imageUrls: [],
+        descriptionGeneral: '', keyBenefits: '', suitableFor: '', variations: [],
       )),
     );
     return item.product.id == -1 ? 0 : item.quantity;
