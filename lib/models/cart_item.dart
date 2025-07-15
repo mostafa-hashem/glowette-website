@@ -1,4 +1,4 @@
-import 'product_model.dart';
+import 'package:glowette/models/product_model.dart';
 
 class CartItem {
   final Product product;
@@ -50,29 +50,29 @@ class CartItem {
     List<ProductVariation> variations = [];
     if (productMap['variations'] != null) {
       variations = (productMap['variations'] as List)
-          .map((v) => ProductVariation.fromMap(v))
+          .map((v) => ProductVariation.fromMap(v as Map<String, dynamic>))
           .toList();
     }
 
     ProductVariation? selectedVariation;
     if (map['selected_variation'] != null) {
-      selectedVariation = ProductVariation.fromMap(map['selected_variation']);
+      selectedVariation = ProductVariation.fromMap(map['selected_variation'] as Map<String, dynamic>);
     }
 
     return CartItem(
       product: Product(
-        id: productMap['id'],
-        name: productMap['name'] ?? '',
+        id: productMap['id'] as int? ?? 0,
+        name: productMap['name'] as String? ?? '',
         price: (productMap['price'] as num? ?? 0).toDouble(),
-        imageUrls: List<String>.from(productMap['image_urls'] ?? []),
-        descriptionGeneral: productMap['description_general'] ?? '',
-        keyBenefits: productMap['key_benefits'] ?? '',
-        suitableFor: productMap['suitable_for'] ?? '',
-        variations: variations,
+        imageUrls: List<String>.from(productMap['image_urls'] as Iterable<dynamic> ?? []),
+        descriptionGeneral: productMap['description_general'] as String? ?? '',
+        keyBenefits: productMap['key_benefits'] as String? ?? '',
+        suitableFor: productMap['suitable_for'] as String? ?? '',
+        variations: variations as List<ProductVariation>? ?? [],
       ),
       selectedVariation: selectedVariation,
-      quantity: map['quantity'] ?? 1,
-      addedAt: DateTime.fromMillisecondsSinceEpoch(map['addedAt'] ?? 0),
+      quantity: map['quantity'] as int? ?? 1,
+      addedAt: DateTime.fromMillisecondsSinceEpoch(map['addedAt'] as int? ?? 0),
     );
   }
 

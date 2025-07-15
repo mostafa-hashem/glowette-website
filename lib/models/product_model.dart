@@ -11,9 +11,9 @@ class ProductVariation {
 
   factory ProductVariation.fromMap(Map<String, dynamic> map) {
     return ProductVariation(
-      size: map['size'] ?? '',
+      size: map['size'] as String? ?? '',
       price: (map['price'] as num? ?? 0).toDouble(),
-      isAvailable: map['is_available'] ?? true,
+      isAvailable: map['is_available'] as bool? ?? true,
     );
   }
 
@@ -63,25 +63,25 @@ class Product {
     List<ProductVariation> variationsList = [];
     if (map['variations'] != null) {
       variationsList = (map['variations'] as List)
-          .map((v) => ProductVariation.fromMap(v))
+          .map((v) => ProductVariation.fromMap(v as Map<String, dynamic>))
           .toList();
     }
 
     return Product(
-      id: map['id'],
-      name: map['name'] ?? '',
+      id: map['id'] as int? ?? 0,
+      name: map['name'] as String? ?? '',
       price: (map['price'] as num? ?? 0).toDouble(),
-      imageUrls: List<String>.from(map['image_urls'] ?? []),
-      descriptionGeneral: map['description_general'] ?? '',
-      keyBenefits: map['key_benefits'] ?? '',
-      suitableFor: map['suitable_for'] ?? '',
-      isAvailable: map['is_available'] ?? true,
+      imageUrls: List<String>.from(map['image_urls'] as Iterable<dynamic> ?? []),
+      descriptionGeneral: map['description_general'] as String? ?? '',
+      keyBenefits: map['key_benefits'] as String? ?? '',
+      suitableFor: map['suitable_for'] as String? ?? '',
+      isAvailable: map['is_available'] as bool? ?? true,
       createdAt: map['created_at'] != null 
-          ? DateTime.parse(map['created_at'])
+          ? DateTime.parse(map['created_at'] as String? ?? '')
           : DateTime.now(),
       rating: (map['rating'] as num? ?? 0.0).toDouble(),
-      reviewsCount: map['reviews_count'] ?? 0,
-      variations: variationsList,
+      reviewsCount: map['reviews_count'] as int? ?? 0,
+      variations: variationsList as List<ProductVariation>? ?? [],
     );
   }
 

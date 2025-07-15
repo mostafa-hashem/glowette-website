@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:glowette/models/product_model.dart';
@@ -9,7 +10,6 @@ import 'package:glowette/widgets/custom_toast.dart';
 import 'package:glowette/widgets/loading_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -352,7 +352,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                             onPressed: () {
                               cartProvider.updateQuantityWithVariation(
                                 item.product.id as int,
-                                item.selectedVariation as ProductVariation,
+                                item.selectedVariation ,
                                 item.quantity - 1 as int,
                               );
                             },
@@ -385,7 +385,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                             onPressed: () {
                               cartProvider.updateQuantityWithVariation(
                                 item.product.id as int,
-                                item.selectedVariation as ProductVariation,
+                                item.selectedVariation ,
                                 item.quantity + 1 as int,
                               );
                             },
@@ -395,7 +395,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                             onPressed: () {
                               cartProvider.removeFromCartWithVariation(
                                 item.product.id as int,
-                                item.selectedVariation as ProductVariation,
+                                item.selectedVariation,
                               );
                             },
                             icon: const Icon(Icons.delete_outline),
@@ -563,7 +563,6 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
 
 
                 if (kIsWeb) {
-                  // جرب تفتح لينك واتساب ويب
                   final String encodedMessage = Uri.encodeComponent(message);
                   final String url = 'https://wa.me/201120502733?text=$encodedMessage';
                   if (await canLaunchUrl(Uri.parse(url))) {
@@ -592,7 +591,6 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     );
                   }
                 } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-                  // desktop: dialog with copy
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(

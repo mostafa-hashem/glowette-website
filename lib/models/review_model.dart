@@ -19,13 +19,13 @@ class Review {
 
   factory Review.fromMap(Map<String, dynamic> map) {
     return Review(
-      id: map['id'],
-      productId: map['product_id'],
-      reviewerName: map['reviewer_name'] ?? '',
-      rating: map['rating'] ?? 5,
-      comment: map['comment'] ?? '',
-      createdAt: DateTime.parse(map['created_at']),
-      isApproved: map['is_approved'] ?? true,
+      id: map['id'] as int? ?? 0,
+      productId: map['product_id'] as int,
+      reviewerName: map['reviewer_name'] as String? ?? '',
+      rating: map['rating'] as int? ?? 0,
+      comment: map['comment'] as String? ?? '',
+      createdAt: DateTime.parse(map['created_at'] as String? ?? ''),
+      isApproved: map['is_approved'] as bool? ?? true,
     );
   }
 
