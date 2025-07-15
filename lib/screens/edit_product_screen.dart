@@ -11,7 +11,7 @@ import '../helper_methouds.dart';
 
 class EditProductScreen extends StatefulWidget {
   final Product product;
-  
+
   const EditProductScreen({super.key, required this.product});
 
   @override
@@ -25,14 +25,14 @@ class _EditProductScreenState extends State<EditProductScreen>
   final _generalDescController = TextEditingController();
   final _benefitsController = TextEditingController();
   final _suitableForController = TextEditingController();
-  
+
   final List<XFile> _newImageFiles = [];
   List<String> _existingImageUrls = [];
   List<ProductVariation> _variations = [];
   bool _isLoading = false;
   bool _isAvailable = true;
   final supabase = Supabase.instance.client;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -40,7 +40,7 @@ class _EditProductScreenState extends State<EditProductScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _nameController.text = widget.product.name;
     _generalDescController.text = widget.product.descriptionGeneral;
     _benefitsController.text = widget.product.keyBenefits;
@@ -48,10 +48,11 @@ class _EditProductScreenState extends State<EditProductScreen>
     _existingImageUrls = List.from(widget.product.imageUrls);
     _variations = List.from(widget.product.availableVariations);
     if (_variations.isEmpty) {
-      _variations.add(ProductVariation(size: 'عادي', price: widget.product.price));
+      _variations
+          .add(ProductVariation(size: 'عادي', price: widget.product.price));
     }
     _isAvailable = widget.product.isAvailable;
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -129,7 +130,8 @@ class _EditProductScreenState extends State<EditProductScreen>
     }
 
     if (_variations.any((v) => v.size.isEmpty || v.price <= 0)) {
-      CustomToast.showWarning('يرجى التأكد من إدخال جميع الأحجام والأسعار بشكل صحيح');
+      CustomToast.showWarning(
+          'يرجى التأكد من إدخال جميع الأحجام والأسعار بشكل صحيح');
       return;
     }
 
@@ -149,14 +151,17 @@ class _EditProductScreenState extends State<EditProductScreen>
       List<String> allImageUrls = List.from(_existingImageUrls);
 
       if (_newImageFiles.isNotEmpty) {
-        final newImageUrls = await FileUploadHelper.uploadMultipleImages(_newImageFiles);
+        final newImageUrls =
+            await FileUploadHelper.uploadMultipleImages(_newImageFiles);
         allImageUrls.addAll(newImageUrls);
       }
 
-      final variationsJson = _variations.map((v) => {
-        'size': v.size,
-        'price': v.price,
-      }).toList();
+      final variationsJson = _variations
+          .map((v) => {
+                'size': v.size,
+                'price': v.price,
+              })
+          .toList();
 
       await supabase.from('products').update({
         'name': _nameController.text,
@@ -201,7 +206,7 @@ class _EditProductScreenState extends State<EditProductScreen>
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Card(
       elevation: 8,
-      color: themeProvider.cardColor.withValues(alpha:  0.95),
+      color: themeProvider.cardColor.withValues(alpha: 0.95),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -258,10 +263,9 @@ class _EditProductScreenState extends State<EditProductScreen>
               ],
             ),
             const SizedBox(height: 20),
-
             if (_existingImageUrls.isNotEmpty) ...[
               const Text(
-                                      'الصور الحالية:',
+                'الصور الحالية:',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -345,10 +349,9 @@ class _EditProductScreenState extends State<EditProductScreen>
               ),
               const SizedBox(height: 20),
             ],
-
             if (_newImageFiles.isNotEmpty) ...[
               const Text(
-                                            'الصور الجديدة للإضافة:',
+                'الصور الجديدة للإضافة:',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -426,14 +429,14 @@ class _EditProductScreenState extends State<EditProductScreen>
               ),
               const SizedBox(height: 20),
             ],
-
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: _pickImages,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE57F84).withValues(alpha: 0.1),
+                  backgroundColor:
+                      const Color(0xFFE57F84).withValues(alpha: 0.1),
                   foregroundColor: const Color(0xFFE57F84),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -482,16 +485,17 @@ class _EditProductScreenState extends State<EditProductScreen>
               ],
             ),
             const SizedBox(height: 20),
-            
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _variations.length,
               itemBuilder: (context, index) {
                 final variation = _variations[index];
-                final sizeController = TextEditingController(text: variation.size);
-                final priceController = TextEditingController(text: variation.price.toString());
-                
+                final sizeController =
+                    TextEditingController(text: variation.size);
+                final priceController =
+                    TextEditingController(text: variation.price.toString());
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 15),
                   padding: const EdgeInsets.all(15),
@@ -514,9 +518,11 @@ class _EditProductScreenState extends State<EditProductScreen>
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                           ),
-                          onChanged: (value) => _updateVariation(index, value, variation.price),
+                          onChanged: (value) =>
+                              _updateVariation(index, value, variation.price),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -531,7 +537,8 @@ class _EditProductScreenState extends State<EditProductScreen>
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                           ),
                           keyboardType: TextInputType.number,
                           onChanged: (value) {
@@ -543,7 +550,8 @@ class _EditProductScreenState extends State<EditProductScreen>
                       const SizedBox(width: 10),
                       IconButton(
                         onPressed: () => _removeVariation(index),
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        icon:
+                            const Icon(Icons.delete_outline, color: Colors.red),
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.red.withValues(alpha: 0.1),
                         ),
@@ -553,9 +561,7 @@ class _EditProductScreenState extends State<EditProductScreen>
                 );
               },
             ),
-            
             const SizedBox(height: 15),
-            
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -582,9 +588,9 @@ class _EditProductScreenState extends State<EditProductScreen>
   Widget build(BuildContext context) {
     CustomToast.setContext(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+
     return Scaffold(
-    backgroundColor: themeProvider.cardColor,
+      backgroundColor: themeProvider.cardColor,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -607,7 +613,8 @@ class _EditProductScreenState extends State<EditProductScreen>
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.arrow_back_ios_new),
                       style: IconButton.styleFrom(
-                        backgroundColor: themeProvider.cardColor.withValues(alpha: 0.9),
+                        backgroundColor:
+                            themeProvider.cardColor.withValues(alpha: 0.9),
                         foregroundColor: themeProvider.textColor,
                       ),
                     ),
@@ -616,7 +623,7 @@ class _EditProductScreenState extends State<EditProductScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                           Text(
+                          Text(
                             'تعديل المنتج',
                             style: TextStyle(
                               fontSize: 24,
@@ -639,7 +646,6 @@ class _EditProductScreenState extends State<EditProductScreen>
                   ],
                 ),
               ),
-
               Expanded(
                 child: FadeTransition(
                   opacity: _fadeAnimation,
@@ -656,56 +662,52 @@ class _EditProductScreenState extends State<EditProductScreen>
                               label: 'اسم المنتج',
                               hint: 'أدخل اسم المنتج',
                               icon: Icons.shopping_bag_outlined,
-                              validator: (value) =>
-                                  value!.isEmpty ? 'يرجى إدخال اسم المنتج' : null,
+                              validator: (value) => value!.isEmpty
+                                  ? 'يرجى إدخال اسم المنتج'
+                                  : null,
                             ),
-
                             const SizedBox(height: 20),
-
                             _buildVariationsSection(),
-
                             const SizedBox(height: 20),
-
                             _buildFormField(
                               controller: _generalDescController,
                               label: 'الوصف العام',
                               hint: 'اوصف المنتج بالتفصيل...',
                               icon: Icons.description,
                               maxLines: 4,
-                              validator: (value) =>
-                                  value!.isEmpty ? 'يرجى إدخال وصف المنتج' : null,
+                              validator: (value) => value!.isEmpty
+                                  ? 'يرجى إدخال وصف المنتج'
+                                  : null,
                             ),
-
                             const SizedBox(height: 20),
-
                             _buildFormField(
                               controller: _benefitsController,
                               label: 'الفوائد الرئيسية',
                               hint: 'اذكر الفوائد الأساسية...',
                               icon: Icons.star_outline,
                               maxLines: 4,
-                              validator: (value) =>
-                                  value!.isEmpty ? 'يرجى إدخال فوائد المنتج' : null,
+                              validator: (value) => value!.isEmpty
+                                  ? 'يرجى إدخال فوائد المنتج'
+                                  : null,
                             ),
-
                             const SizedBox(height: 20),
-
                             _buildFormField(
                               controller: _suitableForController,
                               label: 'مناسب لـ',
                               hint: 'لمن هذا المنتج مناسب؟',
                               icon: Icons.people_outline,
                               maxLines: 3,
-                              validator: (value) =>
-                                  value!.isEmpty ? 'يرجى تحديد من المناسب لهم هذا المنتج' : null,
+                              validator: (value) => value!.isEmpty
+                                  ? 'يرجى تحديد من المناسب لهم هذا المنتج'
+                                  : null,
                             ),
-
                             const SizedBox(height: 20),
-
                             Card(
                               elevation: 8,
-                              color: themeProvider.cardColor.withValues(alpha: 0.95),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              color: themeProvider.cardColor
+                                  .withValues(alpha: 0.95),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
                               child: Padding(
                                 padding: const EdgeInsets.all(20.0),
                                 child: Row(
@@ -740,7 +742,7 @@ class _EditProductScreenState extends State<EditProductScreen>
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
-                                        color: _isAvailable 
+                                        color: _isAvailable
                                             ? const Color(0xFF4CAF50)
                                             : const Color(0xFFFF5722),
                                       ),
@@ -749,13 +751,9 @@ class _EditProductScreenState extends State<EditProductScreen>
                                 ),
                               ),
                             ),
-
                             const SizedBox(height: 20),
-
                             _buildImageSection(),
-
                             const SizedBox(height: 30),
-
                             SizedBox(
                               width: double.infinity,
                               height: 60,
@@ -763,7 +761,8 @@ class _EditProductScreenState extends State<EditProductScreen>
                                   ? Container(
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(20),
-                                        color: const Color(0xFFE57F84).withValues(alpha: 0.1),
+                                        color: const Color(0xFFE57F84)
+                                            .withValues(alpha: 0.1),
                                       ),
                                       child: const Center(
                                         child: LoadingIndicator(size: 35),
@@ -772,12 +771,16 @@ class _EditProductScreenState extends State<EditProductScreen>
                                   : ElevatedButton(
                                       onPressed: _updateProduct,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFFE57F84),
-                                        foregroundColor: themeProvider.textColor,
+                                        backgroundColor:
+                                            const Color(0xFFE57F84),
+                                        foregroundColor:
+                                            themeProvider.textColor,
                                         elevation: 10,
-                                        shadowColor: const Color(0xFFE57F84).withValues(alpha: 0.4),
+                                        shadowColor: const Color(0xFFE57F84)
+                                            .withValues(alpha: 0.4),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
                                         ),
                                       ),
                                       child: const Text(
@@ -790,7 +793,6 @@ class _EditProductScreenState extends State<EditProductScreen>
                                       ),
                                     ),
                             ),
-
                             const SizedBox(height: 20),
                           ],
                         ),
@@ -806,4 +808,3 @@ class _EditProductScreenState extends State<EditProductScreen>
     );
   }
 }
- 

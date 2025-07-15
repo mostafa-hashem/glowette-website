@@ -532,7 +532,7 @@ class _ReviewsScreenState extends State<ReviewsScreen>
                     ? Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
-                          color: themeProvider.primaryColor.withOpacity(0.1),
+                          color: themeProvider.primaryColor.withValues(alpha: 0.1),
                         ),
                         child: const Center(
                           child: LoadingIndicator(size: 30),

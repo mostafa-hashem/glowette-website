@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product_model.dart';
 import '../widgets/product_card.dart';
-import '../widgets/loading_indicator.dart';
 import '../widgets/search_widget.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/custom_toast.dart';
@@ -28,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String searchQuery = '';
   FilterOptions currentFilters = FilterOptions();
   double maxProductPrice = 1000;
-  
+
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -54,28 +53,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _fetchProducts() async {
     final bool isRefresh = !isLoading;
-    
+
     if (!isRefresh) {
       setState(() => isLoading = true);
     } else {
       setState(() => isRefreshing = true);
     }
-    
+
     try {
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       final response = await Supabase.instance.client
           .from('products')
           .select()
           .order('created_at', ascending: false);
 
-      final newProducts = response.map<Product>((map) => Product.fromMap(map)).toList();
+      final newProducts =
+          response.map<Product>((map) => Product.fromMap(map)).toList();
       final oldCount = allProducts.length;
-      
+
       allProducts = newProducts;
       _calculateMaxPrice();
       _applyFiltersAndSearch();
-      
+
       if (isRefresh) {
         final newCount = allProducts.length;
         if (newCount > oldCount) {
@@ -86,12 +86,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           CustomToast.showSuccess('المنتجات محدثة', emoji: '✅');
         }
       }
-      
+
       _fadeController.forward();
     } catch (e) {
       print('Error loading products: $e');
       if (isRefresh) {
-        CustomToast.showError('خطأ في التحديث. تحقق من الاتصال بالإنترنت', emoji: '❌');
+        CustomToast.showError('خطأ في التحديث. تحقق من الاتصال بالإنترنت',
+            emoji: '❌');
       }
     } finally {
       if (mounted) {
@@ -111,12 +112,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       maxProductPrice = allProducts
           .map((product) => product.maxPrice)
           .reduce((a, b) => a > b ? a : b);
-      
-      // تأكد من أن القيمة صحيحة
+
       if (maxProductPrice <= 0) {
         maxProductPrice = 1000;
       }
-      
+
       if (currentFilters.maxPrice == 999999) {
         currentFilters = FilterOptions(
           minPrice: currentFilters.minPrice,
@@ -125,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         );
       }
     } else {
-      maxProductPrice = 1000; // قيمة افتراضية
+      maxProductPrice = 1000;
     }
   }
 
@@ -135,20 +135,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (searchQuery.isNotEmpty) {
       filtered = filtered.where((product) {
         return product.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-               product.descriptionGeneral.toLowerCase().contains(searchQuery.toLowerCase()) ||
-               product.keyBenefits.toLowerCase().contains(searchQuery.toLowerCase());
+            product.descriptionGeneral
+                .toLowerCase()
+                .contains(searchQuery.toLowerCase()) ||
+            product.keyBenefits
+                .toLowerCase()
+                .contains(searchQuery.toLowerCase());
       }).toList();
     }
 
     filtered = filtered.where((product) {
-      final priceCheck = product.minPrice >= currentFilters.minPrice && 
-                        product.maxPrice <= currentFilters.maxPrice;
-      final ratingCheck = currentFilters.minRating == 0 || 
-                         product.rating >= currentFilters.minRating;
+      final priceCheck = product.minPrice >= currentFilters.minPrice &&
+          product.maxPrice <= currentFilters.maxPrice;
+      final ratingCheck = currentFilters.minRating == 0 ||
+          product.rating >= currentFilters.minRating;
       return priceCheck && ratingCheck;
     }).toList();
 
-    // ترتيب المنتجات: المتوفرة الأول
     filtered.sort((a, b) {
       if (a.isAvailable && !b.isAvailable) return -1;
       if (!a.isAvailable && b.isAvailable) return 1;
@@ -176,11 +179,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     CustomToast.setContext(context);
-    
+
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-    return Scaffold(
-      drawer: const AppDrawer(),
+        return Scaffold(
+          drawer: const AppDrawer(),
           body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -198,20 +201,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 strokeWidth: 3,
                 child: CustomScrollView(
                   slivers: [
-                    SliverToBoxAdapter(
-                      child: Column(
-                        children: [
-                          _buildHeader(themeProvider),
-                          _buildSearchBar(),
-                          _buildFilterBar(),
-                        ],
-                      ),
-                    ),
-                    SliverFillRemaining(
-                      child: isLoading
-                          ? const Center(child: LoadingIndicator(size: 50))
-                          : _buildProductGrid(themeProvider),
-                    ),
+                    _buildSliverHeader(themeProvider),
+                    _buildSliverSearchBar(),
+                    _buildSliverFilterBar(),
+                    _buildProductSliverGrid(themeProvider),
                   ],
                 ),
               ),
@@ -228,11 +221,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         double sidePadding = 20;
         if (constraints.maxWidth > 800) sidePadding = 40;
         if (constraints.maxWidth > 1200) sidePadding = 60;
-        
+
         return Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 1400),
-            padding: EdgeInsets.symmetric(horizontal: sidePadding, vertical: 20),
+            padding:
+                EdgeInsets.symmetric(horizontal: sidePadding, vertical: 20),
             child: Row(
               children: [
                 IconButton(
@@ -274,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   decoration: BoxDecoration(
-                    gradient: isRefreshing 
+                    gradient: isRefreshing
                         ? LinearGradient(
                             colors: [
                               const Color(0xFFE57F84).withValues(alpha: 0.15),
@@ -284,31 +278,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         : null,
                     color: isRefreshing ? null : themeProvider.surfaceColor,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: isRefreshing ? [
-                      BoxShadow(
-                        color: const Color(0xFFE57F84).withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 3),
-                      ),
-                    ] : [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    boxShadow: isRefreshing
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFE57F84)
+                                  .withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 3),
+                            ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                   ),
                   child: IconButton(
-                    onPressed: (isRefreshing || isLoading) ? null : _fetchProducts,
+                    onPressed:
+                        (isRefreshing || isLoading) ? null : _fetchProducts,
                     icon: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
-                      child: isRefreshing 
+                      child: isRefreshing
                           ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE57F84)),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFFE57F84)),
                               ),
                             )
                           : const Icon(
@@ -317,11 +316,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               key: ValueKey('refresh_icon'),
                             ),
                     ),
-                    tooltip: isRefreshing ? 'جاري التحديث...' : 'تحديث المنتجات',
+                    tooltip:
+                        isRefreshing ? 'جاري التحديث...' : 'تحديث المنتجات',
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       foregroundColor: const Color(0xFFE57F84),
-                      disabledForegroundColor: const Color(0xFFE57F84).withValues(alpha: 0.6),
+                      disabledForegroundColor:
+                          const Color(0xFFE57F84).withValues(alpha: 0.6),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -329,12 +330,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
                 const SizedBox(width: 8),
-          IconButton(
+                IconButton(
                   onPressed: () => themeProvider.toggleTheme(),
                   icon: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: Icon(
-                      themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                      themeProvider.isDarkMode
+                          ? Icons.light_mode
+                          : Icons.dark_mode,
                       key: ValueKey(themeProvider.isDarkMode),
                       size: 24,
                     ),
@@ -346,9 +349,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  tooltip: themeProvider.isDarkMode ? 'الوضع المضيء' : 'الوضع المظلم',
-          ),
-          const SizedBox(width: 8),
+                  tooltip: themeProvider.isDarkMode
+                      ? 'الوضع المضيء'
+                      : 'الوضع المظلم',
+                ),
+                const SizedBox(width: 8),
                 Consumer<CartProvider>(
                   builder: (context, cartProvider, child) {
                     return Stack(
@@ -409,11 +414,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         double sidePadding = 20;
         if (constraints.maxWidth > 800) sidePadding = 40;
         if (constraints.maxWidth > 1200) sidePadding = 60;
-        
+
         return Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 1400),
-            padding: EdgeInsets.symmetric(horizontal: sidePadding, vertical: 10),
+            padding:
+                EdgeInsets.symmetric(horizontal: sidePadding, vertical: 10),
             child: SearchWidget(
               hintText: 'ابحث عن المنتجات...',
               onSearchChanged: _onSearchChanged,
@@ -432,11 +438,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         double sidePadding = 20;
         if (constraints.maxWidth > 800) sidePadding = 40;
         if (constraints.maxWidth > 1200) sidePadding = 60;
-        
+
         return Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 1400),
-            padding: EdgeInsets.symmetric(horizontal: sidePadding, vertical: 10),
+            padding:
+                EdgeInsets.symmetric(horizontal: sidePadding, vertical: 10),
             child: FilterWidget(
               initialFilters: currentFilters,
               onFiltersChanged: _onFiltersChanged,
@@ -448,164 +455,144 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildProductGrid(ThemeProvider themeProvider) {
+
+  Widget _buildSliverHeader(ThemeProvider themeProvider) {
+    return SliverToBoxAdapter(child: _buildHeader(themeProvider));
+  }
+
+  Widget _buildSliverSearchBar() {
+    return SliverToBoxAdapter(child: _buildSearchBar());
+  }
+
+  Widget _buildSliverFilterBar() {
+    return SliverToBoxAdapter(child: _buildFilterBar());
+  }
+
+  Widget _buildProductSliverGrid(ThemeProvider themeProvider) {
     if (filteredProducts.isEmpty) {
-      return FadeTransition(
-        opacity: _fadeAnimation,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isSearching ? Icons.search_off : Icons.inventory_2_outlined,
-                size: 80,
-                color: themeProvider.primaryColor.withValues(alpha: 0.6),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                isSearching ? 'لا توجد نتائج للبحث' : 'لا توجد منتجات',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: themeProvider.textColor,
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isSearching ? Icons.search_off : Icons.inventory_2_outlined,
+                  size: 80,
+                  color: themeProvider.primaryColor.withValues(alpha: 0.6),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                isSearching 
-                    ? 'جرب البحث بكلمات مختلفة'
-                    : 'تحقق مرة أخرى لاحقاً',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: themeProvider.secondaryTextColor,
-                ),
-              ),
-              if (isSearching) ...[
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () => _onSearchChanged(''),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: themeProvider.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
+                Text(
+                  isSearching ? 'لا توجد نتائج للبحث' : 'لا توجد منتجات',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: themeProvider.textColor,
                   ),
-                  icon: const Icon(Icons.clear),
-                  label: const Text('مسح البحث'),
                 ),
+                const SizedBox(height: 10),
+                Text(
+                  isSearching
+                      ? 'جرب البحث بكلمات مختلفة'
+                      : 'تحقق مرة أخرى لاحقاً',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: themeProvider.secondaryTextColor,
+                  ),
+                ),
+                if (isSearching) ...[
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => _onSearchChanged(''),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: themeProvider.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    icon: const Icon(Icons.clear),
+                    label: const Text('مسح البحث'),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       );
     }
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          double sidePadding = 20;
-          double maxWidth = 1400;
-          
-          if (constraints.maxWidth > 800) {
-            sidePadding = 40;
-          }
-          if (constraints.maxWidth > 1200) {
-            sidePadding = 60;
-          }
-          
-          return Center(
-            child: Container(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              padding: EdgeInsets.symmetric(horizontal: sidePadding, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (isSearching) ...[
-                    Text(
-                      'نتائج البحث عن "${searchQuery}"',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: themeProvider.textColor,
-                      ),
-                    ),
-                    Text(
-                      '${filteredProducts.length} منتج',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: themeProvider.secondaryTextColor,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, gridConstraints) {
-                        int crossAxisCount = 2;
-                        double childAspectRatio = 0.65;
-                        double spacing = 12;
-                        
-                        final effectiveWidth = gridConstraints.maxWidth;
-                        
-                        if (effectiveWidth > 1200) {
-                          crossAxisCount = 5;
-                          childAspectRatio = 0.70;
-                          spacing = 16;
-                        } else if (effectiveWidth > 900) {
-                crossAxisCount = 4;
-                          childAspectRatio = 0.67;
-                          spacing = 14;
-                        } else if (effectiveWidth > 600) {
-                crossAxisCount = 3;
-                          childAspectRatio = 0.66;
-                          spacing = 12;
-                        } else if (effectiveWidth < 400) {
-                          childAspectRatio = 0.63;
-                          spacing = 10;
-              }
-
-              return GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                            childAspectRatio: childAspectRatio,
-                            crossAxisSpacing: spacing,
-                            mainAxisSpacing: spacing,
-                          ),
-                          itemCount: filteredProducts.length,
-                itemBuilder: (context, index) {
-                            final product = filteredProducts[index];
-                            return TweenAnimationBuilder<double>(
-                              duration: Duration(milliseconds: 300 + (index * 100)),
-                              tween: Tween(begin: 0.0, end: 1.0),
-                              builder: (context, value, child) {
-                                return Transform.scale(
-                                  scale: value,
-                                  child: Opacity(
-                                    opacity: value,
-                                    child: ProductCard(
-                                      product: product,
-                                    ),
-                                  ),
-                  );
-                },
-              );
-            },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+    return SliverToBoxAdapter(
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: _buildGridContent(themeProvider),
+        ),
       ),
+    );
+  }
+
+  int _getCrossAxisCount() {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 1200) return 5;
+    if (width > 900) return 4;
+    if (width > 600) return 3;
+    return 2;
+  }
+
+  double _getChildAspectRatio() {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 1200) return 0.70;
+    if (width > 900) return 0.67;
+    if (width > 600) return 0.66;
+    if (width < 400) return 0.63;
+    return 0.65;
+  }
+
+  double _getSpacing() {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 1200) return 16;
+    if (width > 900) return 14;
+    if (width < 400) return 10;
+    return 12;
+  }
+
+  Widget _buildGridContent(ThemeProvider themeProvider) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _getCrossAxisCount(),
+        childAspectRatio: _getChildAspectRatio(),
+        crossAxisSpacing: _getSpacing(),
+        mainAxisSpacing: _getSpacing(),
+      ),
+      itemCount: filteredProducts.length,
+      itemBuilder: (context, index) {
+        final product = filteredProducts[index];
+        return TweenAnimationBuilder<double>(
+          duration: Duration(milliseconds: 300 + (index * 100)),
+          tween: Tween(begin: 0.0, end: 1.0),
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: Opacity(
+                opacity: value,
+                child: ProductCard(
+                  product: product,
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -285,7 +285,7 @@ class _LoginScreenState extends State<LoginScreen>
                                           elevation: 8,
                                           shadowColor: themeProvider
                                               .primaryColor
-                                              .withOpacity(0.4),
+                                              .withValues(alpha: 0.4),
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
                                                 BorderRadius.circular(15),

@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/cart_item.dart';
-import '../models/product_model.dart';
-
-// For web localStorage
 import 'dart:html' as html show window;
+
+import 'package:flutter/foundation.dart';
+import 'package:glowette/models/cart_item.dart';
+import 'package:glowette/models/product_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CartService {
   static const String _cartKey = 'glowette_cart';
@@ -42,8 +41,8 @@ class CartService {
       }
       
       if (cartData != null && cartData.isNotEmpty) {
-        final List<dynamic> cartList = json.decode(cartData);
-        _cartItems = cartList.map((item) => CartItem.fromMap(item)).toList();
+        final List<dynamic> cartList = json.decode(cartData) as List<dynamic>;
+        _cartItems = cartList.map((item) => CartItem.fromMap(item as Map<String, dynamic>)).toList();
       }
     } catch (e) {
       print('Error loading cart: $e');

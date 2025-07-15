@@ -1,9 +1,14 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/custom_toast.dart';
 import '../providers/theme_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -39,9 +44,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     CustomToast.setContext(context);
-    
+
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -83,7 +88,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             onPressed: () => Navigator.pop(context),
             tooltip: 'العودة',
             style: IconButton.styleFrom(
-              backgroundColor: themeProvider.cardColor.withOpacity(0.9),
+              backgroundColor: themeProvider.cardColor.withValues(alpha: 0.9),
               foregroundColor: themeProvider.textColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -91,7 +96,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 16),
-           Expanded(
+          Expanded(
             child: Text(
               'سلة التسوق',
               style: TextStyle(
@@ -113,7 +118,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 child: Text(
                   '${cartProvider.itemCount} منتج',
                   style: TextStyle(
-                    color: themeProvider.isDarkMode ? Colors.black : Colors.white,
+                    color:
+                        themeProvider.isDarkMode ? Colors.black : Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -155,7 +161,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(height: 24),
-             Text(
+            Text(
               'سلة التسوق فارغة',
               style: TextStyle(
                 fontSize: 24,
@@ -176,7 +182,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: themeProvider.primaryColor,
-                foregroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
+                foregroundColor:
+                    themeProvider.isDarkMode ? Colors.black : Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -309,9 +316,11 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                       const SizedBox(height: 4),
                       if (item.selectedVariation != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: themeProvider.primaryColor.withValues(alpha: 0.1),
+                            color: themeProvider.primaryColor
+                                .withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -333,7 +342,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                         ),
                       ),
                       const SizedBox(height: 12),
-                                              Row(
+                      Row(
                         children: [
                           _buildQuantityButton(
                             icon: Icons.remove,
@@ -355,7 +364,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                               color: themeProvider.backgroundColor,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: themeProvider.primaryColor.withValues(alpha: 0.3),
+                                color: themeProvider.primaryColor
+                                    .withValues(alpha: 0.3),
                               ),
                             ),
                             child: Text(
@@ -380,13 +390,16 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           const Spacer(),
                           IconButton(
                             onPressed: () {
-                              cartProvider.removeFromCartWithVariation(item.product.id, item.selectedVariation);
+                              cartProvider.removeFromCartWithVariation(
+                                  item.product.id, item.selectedVariation);
                             },
                             icon: const Icon(Icons.delete_outline),
                             color: Colors.red[400],
                             tooltip: 'إزالة المنتج',
                             style: IconButton.styleFrom(
-                              backgroundColor: themeProvider.isDarkMode ? Colors.red[900] : Colors.red[50],
+                              backgroundColor: themeProvider.isDarkMode
+                                  ? Colors.red[900]
+                                  : Colors.red[50],
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -460,7 +473,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[300],
+              color: themeProvider.isDarkMode
+                  ? Colors.grey[800]
+                  : Colors.grey[300],
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -475,7 +490,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     'المبلغ الإجمالي',
                     style: TextStyle(
                       fontSize: 16,
-                      color: themeProvider.isDarkMode ? Colors.white70 : Colors.white.withValues(alpha: 0.8),
+                      color: themeProvider.isDarkMode
+                          ? Colors.white70
+                          : Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -484,7 +501,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: themeProvider.isDarkMode ? Colors.white : Colors.white,
+                      color: themeProvider.isDarkMode
+                          ? Colors.white
+                          : Colors.white,
                     ),
                   ),
                 ],
@@ -493,13 +512,16 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: themeProvider.isDarkMode ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.3),
+                  color: themeProvider.isDarkMode
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text(
                   '${cartProvider.itemCount} منتج',
                   style: TextStyle(
-                    color: themeProvider.isDarkMode ? Colors.white : Colors.white,
+                    color:
+                        themeProvider.isDarkMode ? Colors.white : Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -511,22 +533,84 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             width: double.infinity,
             height: 56,
             child: ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('ميزة الدفع قريباً!'),
-                    backgroundColor: Color(0xFFE57F84),
-                  ),
-                );
+              onPressed: () async {
+                final cartItems = cartProvider.cartItems;
+                if (cartItems.isEmpty) {
+                  CustomToast.showInfo('السلة فاضية!');
+                  return;
+                }
+
+                final StringBuffer messageBuffer = StringBuffer();
+                messageBuffer.writeln('New order from the app:');
+                messageBuffer.writeln('--------------------');
+                messageBuffer.writeln('Product Name | Quantity | Size | Price');
+                messageBuffer.writeln('--------------------');
+                for (var item in cartItems) {
+                  messageBuffer.writeln(
+                    '${item.product.name} | ${item.quantity} | ${item.displaySize} | ${item.itemPrice.toStringAsFixed(2)} EGP',
+                  );
+                }
+                messageBuffer.writeln('--------------------');
+                messageBuffer.write('Total: ${cartProvider.totalAmount.toStringAsFixed(2)} EGP');
+                final String message = messageBuffer.toString();
+
+                Uri.encodeComponent(message);
+
+
+                if (kIsWeb ||
+                    Platform.isWindows ||
+                    Platform.isMacOS ||
+                    Platform.isLinux) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('انسخ الرسالة وابعتها على واتساب'),
+                      content: SingleChildScrollView(
+                        child: SelectableText(message),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () async {
+                            await Clipboard.setData(ClipboardData(text: message));
+                            Navigator.of(context).pop();
+                            CustomToast.showSuccess('تم نسخ الرسالة!');
+                          },
+                          child: const Text('نسخ الرسالة'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('إغلاق'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  Uri.encodeComponent(message);
+                  const String phone = '201120502733';
+                  final uri = Uri(
+                    scheme: 'whatsapp',
+                    path: 'send',
+                    queryParameters: {
+                      'phone': phone,
+                      'text': message,
+                    },
+                  );
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } else {
+                    CustomToast.showError('لا يمكن فتح واتساب. تأكد من تثبيت التطبيق.');
+                  }
+                }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: themeProvider.primaryColor,
-                foregroundColor: themeProvider.isDarkMode ? Colors.black : Colors.white,
+                backgroundColor: themeProvider.cardColor,
+                foregroundColor: themeProvider.isDarkMode
+                    ? Colors.white
+                    : themeProvider.primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                elevation: 8,
-                shadowColor: themeProvider.primaryColor.withValues(alpha: 0.4),
+                elevation: 0,
               ),
               icon: const Icon(Icons.shopping_bag_outlined, size: 24),
               label: const Text(
@@ -544,4 +628,3 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
     );
   }
 }
- 

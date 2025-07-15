@@ -112,7 +112,7 @@ class _ProductImageGalleryState extends State<_ProductImageGallery>
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;
                               return const Center(
-                                  child: LoadingIndicator(size: 30));
+                                  child: LoadingIndicator(size: 30),);
                             },
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
@@ -173,7 +173,8 @@ class _ProductImageGalleryState extends State<_ProductImageGallery>
             height: 80,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              color: themeProvider.cardColor.withValues(alpha: themeProvider.isDarkMode ? 0.7 : 0.8),
+              color: themeProvider.cardColor
+                  .withValues(alpha: themeProvider.isDarkMode ? 0.7 : 0.8),
             ),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -206,7 +207,8 @@ class _ProductImageGalleryState extends State<_ProductImageGallery>
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: themeProvider.primaryColor.withValues(alpha: 0.3),
+                                color: themeProvider.primaryColor
+                                    .withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -378,7 +380,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           Expanded(
             child: Text(
               widget.product.name,
-              style:  TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: themeProvider.textColor,
@@ -593,7 +595,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: themeProvider.isDarkMode ? Colors.grey[700] : Colors.grey[300],
+                  color: themeProvider.isDarkMode
+                      ? Colors.grey[700]
+                      : Colors.grey[300],
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -613,15 +617,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: themeProvider.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     // _selectedVariation != null
-                        _selectedVariation?.formattedPrice ?? "اختر الحجم",
-                        // : widget.product.priceRange,
+                    _selectedVariation?.formattedPrice ?? "اختر الحجم",
+                    // : widget.product.priceRange,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -632,7 +637,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6,),
                       decoration: BoxDecoration(
                         color: widget.product.isAvailable
                             ? const Color(0xFF4CAF50).withValues(alpha: 0.1)
@@ -674,23 +680,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                       builder: (context, cartProvider, child) {
                         final isInCart = _selectedVariation != null
                             ? cartProvider.isInCartWithVariation(
-                                widget.product.id, _selectedVariation)
+                                widget.product.id, _selectedVariation,)
                             : cartProvider.isInCart(widget.product.id);
                         final quantity = _selectedVariation != null
                             ? cartProvider.getQuantityWithVariation(
-                                widget.product.id, _selectedVariation)
+                                widget.product.id, _selectedVariation,)
                             : cartProvider.getQuantity(widget.product.id);
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6,),
                           decoration: BoxDecoration(
                             color: isInCart
-                                ? themeProvider.primaryColor.withValues(alpha: 0.1)
+                                ? themeProvider.primaryColor
+                                    .withValues(alpha: 0.1)
                                 : themeProvider.cardColor,
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
                               color: isInCart
                                   ? themeProvider.primaryColor
-                                  : (themeProvider.isDarkMode ? Colors.grey[700]! : Colors.grey[300]!),
+                                  : (themeProvider.isDarkMode
+                                      ? Colors.grey[700]!
+                                      : Colors.grey[300]!),
                             ),
                           ),
                           child: Text(
@@ -715,7 +725,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: themeProvider.isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                color: themeProvider.isDarkMode
+                    ? Colors.grey[800]
+                    : Colors.grey[100],
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -809,11 +821,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     );
   }
 
-  Widget _buildInfoSection({required String title, required String content, required ThemeProvider themeProvider}) {
+  Widget _buildInfoSection(
+      {required String title,
+      required String content,
+      required ThemeProvider themeProvider,}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: themeProvider.isDarkMode ? Colors.grey[900] : const Color(0xFFFDF8F5),
+        color: themeProvider.isDarkMode
+            ? Colors.grey[900]
+            : const Color(0xFFFDF8F5),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: themeProvider.primaryColor.withValues(alpha: 0.2),
@@ -845,7 +862,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     );
   }
 
-  Widget _buildSocialSection(BuildContext context, ThemeProvider themeProvider) {
+  Widget _buildSocialSection(
+      BuildContext context, ThemeProvider themeProvider,) {
     return Column(
       children: [
         const Text(
@@ -863,21 +881,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             _buildSocialButton(
               context: context,
               assetPath: 'assets/images/WhatsApp.webp',
-              url: 'https://chat.whatsapp.com/YourGroupInviteLinkHere',
+              url: 'https://chat.whatsapp.com/HTUfGdzntWLBT8AFHE120j?mode=ac_t',
               color: Colors.transparent,
             ),
             const SizedBox(width: 20),
             _buildSocialButton(
               context: context,
               assetPath: 'assets/images/facebook.webp',
-              url: 'https://www.facebook.com/your-page-link',
+              url: 'https://www.facebook.com/profile.php?id=61577646224307',
               color: const Color(0xFF1877F2),
             ),
             const SizedBox(width: 20),
             _buildSocialButton(
               context: context,
               assetPath: 'assets/images/Instagram.webp',
-              url: 'https://www.instagram.com/your-profile-link',
+              url: 'https://www.instagram.com/glowette_wm/profilecard/?igsh=MWY1ZWV5Y3g2dG02Zg==',
               color: Colors.transparent,
             ),
           ],
